@@ -4,6 +4,10 @@ A product design exploration: **one support platform for three stages of AI adop
 
 **[View the live case study](https://arpan10.github.io/support-platform-integration-prototype/)** · [Interactive prototype](https://arpan10.github.io/support-platform-integration-prototype/prototype.html) · [Design notes](https://arpan10.github.io/support-platform-integration-prototype/design-notes.html)
 
+[![Walkthrough of the prototype](assets/walkthrough.gif)](https://arpan10.github.io/support-platform-integration-prototype/prototype.html)
+
+*Click the animation to open the interactive prototype.*
+
 When customers hit a product issue, support hears first. The question this project explores is how a single platform can shorten the time from the first affected conversation to every rep giving the right answer, for enterprises that work in very different ways: tickets and dashboards (human-led), AI assistants over webhooks and MCP (mixed), and their own agents over A2A (agent-led, specced not built).
 
 ## Contents
