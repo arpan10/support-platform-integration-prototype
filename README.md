@@ -2,6 +2,8 @@
 
 A product design exploration: **one support platform for three stages of AI adoption**, shown through the support-to-product loop.
 
+**[View the live case study](https://arpan10.github.io/support-platform-integration-prototype/)** · [Interactive prototype](https://arpan10.github.io/support-platform-integration-prototype/prototype.html) · [Design notes](https://arpan10.github.io/support-platform-integration-prototype/design-notes.html)
+
 When customers hit a product issue, support hears first. The question this project explores is how a single platform can shorten the time from the first affected conversation to every rep giving the right answer, for enterprises that work in very different ways: tickets and dashboards (human-led), AI assistants over webhooks and MCP (mixed), and their own agents over A2A (agent-led, specced not built).
 
 ## Contents
@@ -12,7 +14,7 @@ When customers hit a product issue, support hears first. The question this proje
 | `prototype.html` | A clickable walkthrough of the mixed tier (webhook + MCP) |
 | `design-notes.html` | Supporting detail: metrics, signals, interface specs, tradeoffs |
 
-Open `index.html` in a browser. The files are self-contained, with no build step or dependencies.
+To run it locally, open `index.html` in a browser. The files are self-contained, with no build step or dependencies.
 
 ## Notes
 
