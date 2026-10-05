@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Notes</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb;
+  --plat:#3b5bdb; --plat-soft:#eef2ff; --ent:#0b7a5a; --ent-soft:#e8f6f0;
+  --warn:#b54708; --warn-soft:#fff4e5; --good:#067647; --good-soft:#e7f6ec;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#111827;color:#fff;padding:16px 24px}
+header h1{margin:0;font-size:18px}
+header p{margin:4px 0 0;color:#d1d5db;font-size:13px}
+nav.tabs{display:flex;gap:4px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;position:sticky;top:0;z-index:2}
+nav.tabs button{background:none;border:none;border-bottom:3px solid transparent;padding:12px 14px;font:inherit;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav.tabs button.on{color:var(--ink);font-weight:600;border-bottom-color:var(--plat)}
+main{max-width:1080px;margin:0 auto;padding:20px 24px 60px}
+section{display:none}
+section.on{display:block}
+h2{font-size:20px;margin:4px 0 6px}
+h3{font-size:15px;margin:22px 0 8px}
+.lead{color:#344054;margin:0 0 14px}
+.sub{color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:8px 0 14px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;background:#fafbfc;border-bottom:1px solid var(--line);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:9px 10px;vertical-align:top}
+tr:last-child td{border-bottom:none}
+code{font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f2f4f7;padding:1px 5px;border-radius:4px}
+pre{background:#0f172a;color:#e2e8f0;padding:12px 14px;border-radius:8px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto;white-space:pre}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:10px 0}
+.principle{background:var(--plat-soft);border:1px solid #c7d2fe;border-radius:10px;padding:12px 16px;margin:10px 0}
+.principle b.t{display:block;color:var(--plat);margin-bottom:4px}
+.principle ol{margin:6px 0 0;padding-left:20px}
+.chip{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);background:#f2f4f7;color:#475467;white-space:nowrap;margin-right:4px}
+.chip.blue{background:var(--plat-soft);color:var(--plat);border-color:#c7d2fe}
+.chip.green{background:var(--ent-soft);color:var(--ent);border-color:#a7dcc6}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:#fcd9a8}
+.group{font-size:18px;font-weight:700;color:var(--ink);margin:26px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+.group span{font-size:14px;font-weight:400;color:var(--muted);margin-left:8px}
+.signal{background:#fff;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+.signal summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;gap:12px;align-items:baseline}
+.signal summary::-webkit-details-marker{display:none}
+.signal summary::before{content:"▸";color:var(--muted);width:10px}
+.signal[open] summary::before{content:"▾"}
+.signal .name{font-weight:600;min-width:190px}
+.signal .def{flex:1;color:#344054}
+.signal .body{padding:0 16px 12px 38px;border-top:1px solid var(--line)}
+.signal .body p{margin:10px 0 0}
+.signal .body b{color:var(--ink)}
+.derived{border-left:3px solid var(--plat);background:#fff;padding:8px 12px;margin:10px 0;border-radius:0 8px 8px 0}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
+.subtabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.subtabs button.on{background:var(--plat);border-color:var(--plat);color:#fff}
+.spec{display:none}
+.spec.on{display:block}
+.placeholder{border:2px dashed #c7cdd6;border-radius:10px;padding:26px;text-align:center;color:var(--muted);background:#fafbfc;margin:12px 0}
+.draft{display:inline-block;font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border:1px solid #fcd9a8;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+ul.check{list-style:none;padding:0;margin:6px 0}
+ul.check li{padding:6px 0 6px 26px;position:relative;border-bottom:1px solid var(--line)}
+ul.check li::before{content:"☐";position:absolute;left:4px;color:var(--muted)}
+ul.check li:last-child{border-bottom:none}
+details.more{margin:10px 0}
+details.more summary{cursor:pointer;color:var(--plat);font-size:13px}
+@media (max-width:700px){main{padding:16px}.signal summary{flex-wrap:wrap}.signal .name{min-width:0}}
+#platform h1{font-size:24px;margin:4px 0 4px;text-align:center}
+#platform .tag{color:var(--muted);text-align:center;margin:0 0 16px;font-size:15px}
+#platform svg{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:14px}
+#platform svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#platform .arch{margin-top:34px;border-top:1px solid var(--line);padding-top:22px}
+#platform .arch summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px}
+#platform .arch summary::-webkit-details-marker{display:none}
+#platform .arch-title{font-size:22px;font-weight:700}
+#platform .arch-hint{font-size:13px;color:#fff;background:#3b5bdb;font-weight:600;border-radius:999px;padding:6px 16px}
+#platform .arch-hint:hover{background:#2f4ac0}
+#platform .arch[open] .arch-hint{font-size:0;background:#fff;border:1px solid #c7d2fe;padding:5px 14px}
+#platform .arch[open] .arch-hint::before{content:"Hide architecture ▴";font-size:13px;color:#3b5bdb}
+#platform .faster td ul{margin:0;padding-left:18px}
+#platform .faster td li{margin:2px 0}
+#platform .faster td.eff{font-weight:600}
+#platform .faster .fr{background:#fdecea;color:#b42318;padding:0 3px;border-radius:3px}
+#platform .faster .ac{background:#e7f6ec;color:#067647;padding:0 3px;border-radius:3px}
+#platform .faster .ph{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:8px 0 2px}
+#platform .faster .ph:first-child{margin-top:0}
+.subtabs{justify-content:space-between;align-items:center}
+.stgroup{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.stgroup.internal{padding-left:14px;border-left:2px solid var(--line)}
+.stlabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:4px}
+.stgroup.internal button.on{background:#475467;border-color:#475467}
+#hardening .card ul{margin:4px 0;padding-left:20px}
+#hardening .card li{margin:0 0 14px;line-height:1.6}
+#hardening .card li:last-child{margin-bottom:0}
+#hardening h3{margin-top:28px}
+#platform .faster td li{margin:0 0 12px;line-height:1.6}
+#platform .faster td li:last-child{margin-bottom:0}
+#platform .faster td{padding:12px 12px}
+.persona-chip{display:inline-block;font-size:11px;font-weight:600;border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:2px;border:1px solid}
+.persona-chip.buyer{background:#fff4e5;color:#b54708;border-color:#fcd9a8}
+.persona-chip.internal{background:#eef2ff;color:#3b5bdb;border-color:#c7d2fe}
+.persona-chip.engineer{background:#e8f6f0;color:#0b7a5a;border-color:#a7dcc6}
+</style>
+</head>
+<body>
+<header>
+  <h1>Signal-to-Fix Engine — Design Notes</h1>
+  <p>How one platform serves three stages of AI adoption, shown through the support-to-product loop.</p>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-tab="platform" class="on">Platform</button>
+  <button data-tab="metrics">Metrics</button>
+  <button data-tab="signals">Signals</button>
+  <button data-tab="specs">Specs</button>
+  <button data-tab="hardening">Tradeoffs</button>
+</nav>
+<main>
+
+<!-- ================= PLATFORM ================= -->
+<section id="platform" class="on">
+  <h1>The Signal-to-Fix loop</h1>
+  <p class="tag"><b>Goal:</b> shorten the time from the first affected conversation to every rep giving the right answer.</p>
+
+  <svg viewBox="0 0 1000 470" role="img" aria-label="Loop: customers report an issue, the support platform triages, the enterprise product team investigates and informs reps, customer reports subside">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475467"/></marker>
+    </defs>
+
+    <!-- columns -->
+    <text x="150" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#475467" letter-spacing="1">CUSTOMERS</text>
+    <rect x="300" y="48" width="340" height="400" rx="16" fill="#eef2ff"/>
+    <text x="470" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#3b5bdb" letter-spacing="1">SUPPORT PLATFORM</text>
+    <rect x="680" y="48" width="300" height="400" rx="16" fill="#e8f6f0"/>
+    <text x="830" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#0b7a5a" letter-spacing="1">ENTERPRISE</text>
+    <line x1="660" y1="20" x2="660" y2="460" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7,5"/>
+
+    <!-- 1. customers report (spike) -->
+    <rect x="40" y="80" width="220" height="120" rx="12" fill="#fff" stroke="#e3e6eb"/>
+    <text x="56" y="106" font-size="14" font-weight="700" fill="#1d2330">Customers report</text>
+    <text x="56" y="124" font-size="13" fill="#667085">a product issue</text>
+    <g fill="#c4320a">
+      <rect x="60" y="178" width="14" height="6"/><rect x="80" y="172" width="14" height="12"/><rect x="100" y="164" width="14" height="20"/>
+      <rect x="120" y="154" width="14" height="30"/><rect x="140" y="146" width="14" height="38"/><rect x="160" y="140" width="14" height="44"/>
+    </g>
+    <text x="184" y="176" font-size="12" font-weight="600" fill="#c4320a">spike ↑</text>
+
+    <!-- 2. triage -->
+    <rect x="360" y="80" width="220" height="120" rx="12" fill="#fff" stroke="#3b5bdb" stroke-width="2"/>
+    <rect x="376" y="92" width="112" height="22" rx="11" fill="#3b5bdb"/>
+    <text x="432" y="107" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Phase 1 · Triage</text>
+    <text x="376" y="138" font-size="13.5" fill="#1d2330">Spots the pattern, confirms</text>
+    <text x="376" y="156" font-size="13.5" fill="#1d2330">it's a product issue, reports</text>
+    <text x="376" y="174" font-size="13.5" fill="#1d2330">it with evidence</text>
+
+    <!-- 3. investigate -->
+    <rect x="720" y="170" width="220" height="130" rx="12" fill="#fff" stroke="#0b7a5a" stroke-width="2"/>
+    <rect x="736" y="182" width="188" height="22" rx="11" fill="#0b7a5a"/>
+    <text x="830" y="197" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Phase 2 · Investigate &amp; inform</text>
+    <text x="736" y="228" font-size="14" font-weight="700" fill="#1d2330">Product team investigates</text>
+    <text x="736" y="248" font-size="13.5" fill="#1d2330">Finds the cause; asks reps</text>
+    <text x="736" y="266" font-size="13.5" fill="#1d2330">to get more info from</text>
+    <text x="736" y="284" font-size="13.5" fill="#1d2330">customers if needed</text>
+
+    <!-- 4. inform reps -->
+    <rect x="360" y="290" width="220" height="120" rx="12" fill="#fff" stroke="#3b5bdb" stroke-width="2"/>
+    <text x="376" y="324" font-size="14" font-weight="700" fill="#1d2330">Reps get the right guidance</text>
+    <text x="376" y="346" font-size="13.5" fill="#1d2330">Human and AI reps answer</text>
+    <text x="376" y="364" font-size="13.5" fill="#1d2330">correctly from the next</text>
+    <text x="376" y="382" font-size="13.5" fill="#1d2330">conversation on</text>
+
+    <!-- 5. subside -->
+    <rect x="40" y="290" width="220" height="120" rx="12" fill="#fff" stroke="#e3e6eb"/>
+    <text x="56" y="316" font-size="14" font-weight="700" fill="#1d2330">Customer reports</text>
+    <text x="56" y="334" font-size="13" fill="#667085">subside</text>
+    <g fill="#067647">
+      <rect x="60" y="350" width="14" height="44"/><rect x="80" y="358" width="14" height="36"/><rect x="100" y="368" width="14" height="26"/>
+      <rect x="120" y="376" width="14" height="18"/><rect x="140" y="384" width="14" height="10"/><rect x="160" y="389" width="14" height="5"/>
+    </g>
+    <text x="184" y="386" font-size="12" font-weight="600" fill="#067647">↓</text>
+
+    <!-- arrows -->
+    <path d="M262,140 L356,140" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+    <text x="309" y="132" text-anchor="middle" font-size="11.5" fill="#475467">conversations</text>
+
+    <path d="M582,140 C680,140 740,140 800,166" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+    <text x="668" y="128" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d2330">report</text>
+
+    <path d="M800,304 C740,340 680,350 584,350" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+    <text x="668" y="365" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d2330">guidance</text>
+
+    <path d="M582,312 C630,300 670,266 716,256" stroke="#0b7a5a" stroke-width="2" stroke-dasharray="4,4" fill="none" marker-end="url(#ar)"/>
+    <rect x="586" y="266" width="124" height="18" rx="4" fill="#fff" opacity=".9"/>
+    <text x="648" y="279" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a5a">provide requested info</text>
+
+    <path d="M358,350 L264,350" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+    <text x="309" y="342" text-anchor="middle" font-size="11.5" fill="#475467">right answers</text>
+
+    <path d="M150,288 L150,204" stroke="#98a2b3" stroke-width="2" stroke-dasharray="5,4" fill="none" marker-end="url(#ar)"/>
+    <text x="158" y="250" font-size="11.5" fill="#667085">loop closes</text>
+
+    <!-- center -->
+    <text x="470" y="245" text-anchor="middle" font-size="26" fill="#3b5bdb">↻</text>
+    <text x="470" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#3b5bdb">Signal-to-Fix Engine</text>
+  </svg>
+
+
+  <details class="arch">
+  <summary><span class="arch-hint">Show architecture ▾</span></summary>
+  <div class="arch-title" style="text-align:center;margin:18px 0 4px">One platform. Three tiers.</div>
+  <p class="tag">Every enterprise runs on the same Signal-to-Fix Engine and the same data model. Each picks the tooling that matches how it works today, and can move up a tier without re-integrating.</p>
+  <svg viewBox="0 0 1000 660" role="img" aria-label="The support platform with core APIs on the left connects to three enterprises: Heritage Mercantile via dashboard, Northwind Outfitters via webhook and MCP, Autonomix via release, engineering and KB agents over A2A">
+    <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#98a2b3"/></marker></defs>
+    <rect x="40" y="30" width="300" height="610" rx="16" fill="#eef2ff" stroke="#3b5bdb" stroke-width="2"/>
+    <text x="60" y="64" font-size="13" font-weight="700" fill="#3b5bdb" letter-spacing="1">SUPPORT PLATFORM</text>
+    <text x="60" y="88" font-size="18" font-weight="700" fill="#1d2330">Signal-to-Fix</text>
+    <text x="60" y="110" font-size="18" font-weight="700" fill="#1d2330">Engine</text>
+    <text x="60" y="290" font-size="12.5" font-weight="700" fill="#475467">Same data model,</text>
+    <text x="60" y="307" font-size="12.5" font-weight="700" fill="#475467">every tier:</text>
+    <text x="64" y="332" font-size="12.5" fill="#475467">•  Issue</text>
+    <text x="64" y="352" font-size="12.5" fill="#475467">•  Case</text>
+    <text x="64" y="372" font-size="12.5" fill="#475467">•  Evidence</text>
+    <text x="64" y="392" font-size="12.5" fill="#475467">•  InfoRequest</text>
+    <text x="64" y="412" font-size="12.5" fill="#475467">•  Guidance</text>
+    <rect x="250" y="50" width="74" height="570" rx="10" fill="#fff" stroke="#3b5bdb" stroke-width="1.5"/>
+    <text transform="translate(292,335) rotate(-90)" text-anchor="middle" font-size="14" font-weight="700" fill="#3b5bdb" letter-spacing="1">CORE APIs</text>
+    <line x1="420" y1="20" x2="420" y2="650" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7,5"/>
+    <text x="412" y="24" text-anchor="end" font-size="11" fill="#667085">← Support Platform</text>
+    <text x="428" y="24" font-size="11" fill="#667085">Enterprise →</text>
+    <!-- Human-led -->
+    <line x1="324" y1="132" x2="500" y2="132" stroke="#475467" stroke-width="2"/>
+    <rect x="345" y="120" width="150" height="24" rx="12" fill="#475467"/>
+    <text x="420" y="136" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Dashboard + Tickets</text>
+    <rect x="500" y="40" width="420" height="184" rx="14" fill="#f2f4f7" stroke="#475467" stroke-width="1.5"/>
+    <rect x="516" y="56" width="88.39999999999999" height="22" rx="11" fill="#475467"/>
+    <text x="526" y="71" font-size="12" font-weight="700" fill="#fff">Human-led</text>
+    <text x="904" y="71" text-anchor="end" font-size="12.5" fill="#475467"><tspan font-weight="700">Mechanic:</tspan> people go and look</text>
+    <text x="516" y="104" font-size="17" font-weight="700" fill="#1d2330">Heritage Mercantile</text>
+    <text x="516" y="125" font-size="13" fill="#667085">Traditional retailer; small tech team, works in tickets</text>
+    <rect x="516" y="142" width="125.5" height="26" rx="13" fill="#ffffff" stroke="#d0d5dd"/>
+    <text x="578.75" y="159" text-anchor="middle" font-size="12.5" font-weight="600" fill="#475467">Dashboard</text>
+    <line x1="516" y1="182" x2="904" y2="182" stroke="#d0d5dd"/>
+    <text x="516" y="206" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#475467">~100</tspan>  conversations without the right guidance</text>
+    <!-- Mixed -->
+    <line x1="324" y1="335" x2="500" y2="335" stroke="#0e7490" stroke-width="2"/>
+    <rect x="355.0" y="323" width="130" height="24" rx="12" fill="#0e7490"/>
+    <text x="420" y="339" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Webhook + MCP</text>
+    <rect x="500" y="243" width="420" height="184" rx="14" fill="#e6f6f9" stroke="#0e7490" stroke-width="1.5"/>
+    <rect x="516" y="259" width="58.0" height="22" rx="11" fill="#0e7490"/>
+    <text x="526" y="274" font-size="12" font-weight="700" fill="#fff">Mixed</text>
+    <text x="904" y="274" text-anchor="end" font-size="12.5" fill="#0e7490"><tspan font-weight="700">Mechanic:</tspan> information is pushed and queried</text>
+    <text x="516" y="307" font-size="17" font-weight="700" fill="#1d2330">Northwind Outfitters</text>
+    <text x="516" y="328" font-size="13" fill="#667085">Modern retailer; engineers already work with AI assistants</text>
+    <rect x="516" y="345" width="70.30000000000001" height="26" rx="13" fill="#ffffff" stroke="#a5dbe6"/>
+    <text x="551.15" y="362" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0e7490">Webhook</text>
+    <rect x="594.3" y="345" width="42.7" height="26" rx="13" fill="#ffffff" stroke="#a5dbe6"/>
+    <text x="615.65" y="362" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0e7490">MCP</text>
+    <line x1="516" y1="385" x2="904" y2="385" stroke="#a5dbe6"/>
+    <text x="516" y="409" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#0e7490">~70</tspan>  conversations without the right guidance</text>
+    <!-- Agent-led -->
+    <line x1="324" y1="538" x2="500" y2="538" stroke="#6d28d9" stroke-width="2"/>
+    <rect x="390.0" y="526" width="60" height="24" rx="12" fill="#6d28d9"/>
+    <text x="420" y="542" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">A2A</text>
+    <rect x="500" y="446" width="420" height="184" rx="14" fill="#f3effe" stroke="#6d28d9" stroke-width="1.5"/>
+    <rect x="516" y="462" width="88.39999999999999" height="22" rx="11" fill="#6d28d9"/>
+    <text x="526" y="477" font-size="12" font-weight="700" fill="#fff">Agent-led</text>
+    <text x="904" y="477" text-anchor="end" font-size="12.5" fill="#6d28d9"><tspan font-weight="700">Mechanic:</tspan> agents hand off to agents</text>
+    <text x="516" y="510" font-size="17" font-weight="700" fill="#1d2330">Autonomix</text>
+    <text x="516" y="531" font-size="13" fill="#667085">AI-native; runs its own agents for releases, engineering, and KB</text>
+    <rect x="516" y="548" width="111.7" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="571.85" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">Release Agent</text>
+    <rect x="635.7" y="548" width="139.3" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="705.35" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">Engineering Agent</text>
+    <rect x="783.0" y="548" width="77.2" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="821.6" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">KB Agent</text>
+    <line x1="516" y1="588" x2="904" y2="588" stroke="#d6c9fb"/>
+    <text x="516" y="612" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#6d28d9">~3</tspan>  conversations without the right guidance</text>
+    <line x1="952" y1="50" x2="952" y2="620" stroke="#98a2b3" stroke-width="2" marker-end="url(#ar2)"/>
+    <text transform="translate(972,335) rotate(90)" text-anchor="middle" font-size="12.5" fill="#667085">More automation, less waiting between people</text>
+  </svg>
+
+  <h3 style="margin-top:26px">Why each tier is faster</h3>
+  <table class="faster">
+    <tr><th style="width:120px">Tier</th><th>What changes, and why it removes waiting</th><th style="width:200px">Effect</th></tr>
+    <tr><td><b>Human-led</b><br><span class="sub">baseline</span></td><td><ul>
+        <li><b>Signal Agent clusters, CX Lead reviews:</b> conversations are scored and grouped automatically; the CX Lead reviews by exception (low-fit conversations are flagged) and reports. Confident at ~38 conversations.</li>
+        <li><b>Manual alert:</b> the CX Lead writes and <span class="fr">files a ticket</span>; it waits in the product team's queue <span class="fr">until someone reads and prioritizes it.</span></li>
+        <li><b>Dashboard:</b> the engineer clicks through conversations in the support platform's dashboard, <span class="fr">outside their own tools</span>.</li></ul></td>
+      <td class="eff">~100 conversations without the right guidance</td></tr>
+    <tr><td><b>Mixed</b></td><td><ul>
+        <li><b>Webhook:</b> the report <span class="ac">lands in the product team's queue in one click</span>, with summary and evidence attached, so there's no ticket to write. Helps most during working hours.</li>
+        <li><b>MCP:</b> the engineer's <span class="ac">AI assistant queries conversations in plain language</span>, next to the engineer's own logs and code <span class="ac">in the same session</span>. Investigation drops from ~2h to ~30m.</li></ul></td>
+      <td class="eff">~70</td></tr>
+    <tr><td><b>Agent-led</b></td><td><ul>
+        <li><b>Release Agent:</b> correlates clusters with what recently changed ("missing apartment deliveries" ↔ "last release changed shipping labels"). <span class="ac">A known change plus matching complaints reaches confidence</span> at ~10 conversations instead of ~38, hours earlier.</li>
+        <li><b>Engineering Agent:</b> <span class="ac">Picks up the report immediately</span> and routes it to the owning engineer, hands over the support platform's <span class="ac">evidence plus the correlated change</span>, relays the engineer's info request, and pushes answers back the moment they're ready.</li>
+        <li><b>KB Agent:</b> applies the enterprise's policies and language, <span class="ac">publishes rep-facing guidance immediately</span>, and routes customer-facing messages to the CX Lead.</li>
+        <li><b>Why agents, not just better tools:</b> MCP only works while an engineer has a session open. An A2A task stays open between human steps, so nothing waits for someone to look, relay, or remember.</li></ul></td>
+      <td class="eff">Guidance ~4h after first report → ~3</td></tr>
+  </table>
+  </details>
+</section>
+
+<!-- ================= METRICS ================= -->
+<section id="metrics">
+  <h2>Metrics — how I'd know it's working</h2>
+  <h3>North star metric <span class="sub" style="font-weight:400">— did customers get the right answer sooner?</span> <span class="persona-chip buyer">Economic buyer · VP CS / CX</span></h3>
+  <table>
+    <tr><th></th><th>Metric</th><th>Direction</th></tr>
+    <tr><td style="width:150px"><b>North star</b></td><td>Avg conversations without the right guidance, per issue</td><td style="width:210px">↓</td></tr><tr><td style="width:150px"><b><i>Guardrail</i></b></td><td>Poor-outcome rate after guidance goes live</td><td style="width:210px">↓ must drop vs. before guidance</td></tr>
+  </table>
+  <h3>Triage <span class="sub" style="font-weight:400">— spot the pattern, confirm the likely root cause, report it</span> <span class="persona-chip internal">CX Lead</span></h3>
+  <table>
+    <tr><th></th><th>Metric</th><th>Direction</th></tr>
+    <tr><td style="width:150px"><b>Primary metric</b></td><td>Avg conversations needed to report a product issue with confidence</td><td style="width:210px">↓</td></tr><tr><td style="width:150px"><b><i>Guardrail</i></b></td><td>Reports rejected by product; conversations removed by the CX Lead</td><td style="width:210px">↔ flat</td></tr>
+  </table>
+  <h3>Investigate &amp; inform <span class="sub" style="font-weight:400">— find the cause, get the right guidance to reps and customers</span> <span class="persona-chip engineer">Enterprise engineer</span></h3>
+  <table>
+    <tr><th></th><th>Metric</th><th>Direction</th></tr>
+    <tr><td style="width:150px"><b>Primary metric</b></td><td>Developer satisfaction: how much effort the engineer says the investigation took, rated after each resolved issue</td><td style="width:210px">↑</td></tr><tr><td style="width:150px"><b>Secondary metric</b></td><td>Avg time from report → investigation complete (root cause found or info requested)</td><td style="width:210px">↓</td></tr><tr><td style="width:150px"><b><i>Guardrail</i></b></td><td>Guidance retraction rate (corrected or withdrawn within 24h)</td><td style="width:210px">↔ flat</td></tr>
+  </table>
+
+  <p class="lead" style="margin-top:22px"><b>Every speed metric is paired with a guardrail that catches it going wrong.</b></p>
+</section>
+
+<!-- ================= SIGNALS ================= -->
+<section id="signals">
+  <h2>Quality signals</h2>
+
+  <div class="group">Quality of experience<span>quality of the customer's experience</span></div>
+  <details class="signal"><summary><span class="name">Frustration at start</span><span class="def">How upset the customer is when they arrive, before support has done anything.</span><span class="chip">low · medium · high</span></summary>
+    <div class="body">
+      <p><b>Why it matters:</b> separates what the customer brought in from what support did. Without it, reps get blamed for customers who arrived angry, and incident severity is understated: high entry frustration means customers already hit the problem, maybe more than once.</p>
+      <p><b>Used for:</b> incident severity; normalizing the trajectory signal.</p>
+    </div></details>
+  <details class="signal"><summary><span class="name">Sentiment trajectory</span><span class="def">How the customer's sentiment changed from the start of the conversation to the end.</span><span class="chip">improved · flat · worsened</span></summary>
+    <div class="body">
+      <p><b>Why it matters:</b> the part of the experience support actually controls. A customer who arrives furious and leaves calm is a <i>good</i> conversation; a raw sentiment score would call it bad.</p>
+      <p><b>Used for:</b> measuring whether guidance is working; a worsened trajectory feeds the "ended poorly" outcome.</p>
+    </div></details>
+  <details class="signal"><summary><span class="name">Resolved in conversation</span><span class="def">Whether the customer's problem was solved before the conversation ended.</span><span class="chip">yes · no · escalated</span></summary>
+    <div class="body">
+      <p><b>Why it matters:</b> the outcome that drives cost (repeat contacts, escalations) and CSAT. During an incident it's the clearest sign reps don't have the right answer.</p>
+      <p><b>Used for:</b> the "ended poorly" outcome on the impact chart.</p>
+    </div></details>
+
+  <div class="group">Triage<span>where the conversation belongs and who can act on it</span></div>
+  <details class="signal"><summary><span class="name">Likely root cause</span><span class="def">The most probable reason the customer contacted support, with a confidence score.</span><span class="chip">product issue · policy · knowledge gap · external</span></summary>
+    <div class="body">
+      <p><b>Why it matters:</b> different causes need different owners. Only product issues go to the product team; knowledge gaps go to support training; external causes (theft, carrier) go nowhere. Routing everything everywhere is how teams learn to ignore alerts.</p>
+      <p><b>Used for:</b> deciding whether a cluster is reported to the product team.</p>
+    </div></details>
+  <details class="signal"><summary><span class="name">Cluster fit</span><span class="def">How closely a conversation matches the rest of its cluster.</span><span class="chip">0–1</span></summary>
+    <div class="body">
+      <p><b>Why it matters:</b> lets the CX Lead review by exception instead of reading every conversation. Low-fit conversations (e.g., porch theft inside a "delivered but not received" cluster) are flagged as unsure. The CX Lead's removals and additions become labeled data for cluster precision and recall.</p>
+      <p><b>Used for:</b> human review of the cluster before it's reported.</p>
+    </div></details>
+
+  <details class="more"><summary>Deliberately not included · how I'd validate the signals</summary>
+    <div class="card">
+      <b>Not included</b>
+      <ul>
+        <li><b>Empathy / agent tone scores</b> — useful for rep coaching, not incident detection. Different loop, different buyer.</li>
+        <li><b>CSAT prediction</b> — would duplicate the three experience signals without adding an action.</li>
+      </ul>
+      <b>How I'd validate the signals</b>
+      <ul>
+        <li>Agreement with human QA labels on a sample of ~200 conversations, per signal.</li>
+        <li>CX Lead removals and additions → precision and recall of clusters over time.</li>
+        <li>Resolved-in-conversation vs. actual repeat contacts within 7 days.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<!-- ================= SPECS ================= -->
+<section id="specs">
+  <h2>Integration specs</h2>
+  <table>
+    <tr><th>Interface</th><th>Shaped around</th><th>Consumer</th></tr>
+    <tr><td>Conversation dashboard</td><td><b>Views</b> — screens over the same objects</td><td>People (CX Lead, engineers)</td></tr>
+    <tr><td>Core API</td><td><b>Resources</b> — one endpoint per object</td><td>Code (including the dashboard)</td></tr>
+    <tr><td>Webhook</td><td><b>Events</b> — "something happened to an Issue"</td><td>Systems</td></tr>
+    <tr><td>MCP</td><td><b>Intents</b> — "help me do this task"</td><td>A model working with a human</td></tr>
+    <tr><td>A2A</td><td><b>Tasks</b> — "own this outcome"</td><td>Another agent</td></tr>
+  </table>
+
+  <div class="subtabs" id="subtabs">
+    <div class="stgroup"><span class="stlabel">Interfaces</span>
+      <button data-spec="core" class="on">Core API</button>
+      <button data-spec="webhook">Webhook</button>
+      <button data-spec="mcp">MCP</button>
+      <button data-spec="a2a">A2A</button>
+    </div>
+    <div class="stgroup internal"><span class="stlabel">Internal</span>
+      <button data-spec="model">Data model</button>
+      <button data-spec="ingest">Ingestion API</button>
+    </div>
+  </div>
+
+  <div class="spec" id="spec-model">
+    <h3>Core data model</h3>
+    <table>
+      <tr><th>Object</th><th>Key attributes</th></tr>
+      <tr><td><b>Case</b></td><td><code>case_id</code>, <code>started_at</code>, <code>channel</code>, signals: <code>frustration_at_start</code>, <code>trajectory</code>, <code>resolved</code>, <code>likely_root_cause {type, confidence}</code>; <code>issues: [{issue_id, cluster_fit, added_by}]</code></td></tr>
+      <tr><td><b>Issue</b></td><td><code>issue_id</code>, <code>title</code>, <code>summary</code>, <code>likely_root_cause {type, confidence}</code>, <code>case_count</code>, <code>first_seen</code>, <code>state</code></td></tr>
+      <tr><td><b>Evidence</b></td><td><code>issue_id</code>, <code>case_id</code>, <code>turn</code>, <code>quote</code>, <code>request_id</code> <span class="sub">(set when the quote answers an InfoRequest)</span></td></tr>
+      <tr><td><b>InfoRequest</b></td><td><code>request_id</code>, <code>issue_id</code>, <code>question</code>, <code>answers_needed</code>, <code>answers {count, breakdown}</code>, each answer linked to Evidence</td></tr>
+      <tr><td><b>Guidance</b></td><td><code>guidance_id</code>, <code>issue_id</code>, <code>audience</code> (rep / customer), <code>text</code>, <code>approval</code> (auto / pending / approved), <code>status</code> (draft / live / retired)</td></tr>
+    </table>
+    <p><b>Issue lifecycle:</b> <code>reported → investigating → needs_info → resolved</code></p>
+    <p class="sub"><b>Relationships:</b> a Case can belong to more than one Issue, so membership lives on the Case, with <code>cluster_fit</code> relative to that Issue and <code>added_by</code> (system / cx_lead) recording the CX Lead's review. Evidence always points to the Issue it supports, and to the InfoRequest when it's an answer.</p>
+<pre>{
+  "issue_id": "ISS-1042",
+  "title": "Delivered but not received",
+  "likely_root_cause": { "type": "product_issue", "confidence": 0.91 },
+  "case_count": 37,
+  "first_seen": "Mon 12:48",
+  "state": "needs_info"
+}</pre>
+
+  </div>
+
+  <div class="spec" id="spec-ingest">
+    <h3>Ingestion API</h3>
+    <p>Batch in, scored cases out. This is where every Case comes from.</p>
+    <p><code>POST /v1/conversations:batch</code></p>
+<pre>// request
+{ "conversations": [ { "conversation_id": "C-40811", "started_at": "Mon 13:12",
+    "channel": "chat",
+    "turns": [ { "speaker": "customer", "text": "Tracking says delivered but nothing at my door." } ] } ] }
+
+// response
+{ "scored": 212,
+  "cases": [ { "case_id": "C-40811",
+    "signals": { "frustration_at_start": "high", "trajectory": "worsened", "resolved": "no",
+                 "likely_root_cause": { "type": "product_issue", "confidence": 0.94 } } } ] }</pre>
+  </div>
+
+  <div class="spec on" id="spec-core">
+    <h3>Core API</h3>
+    <p>Resource-shaped: one endpoint per object, for code and for the support platform's own dashboard. Every other interface is built on it.</p>
+    <table>
+      <tr><th>Endpoint</th><th>Purpose</th></tr>
+      <tr><td><code>GET /v1/issues</code> · <code>GET /v1/issues/{id}</code></td><td>List and read Issues</td></tr>
+      <tr><td><code>GET /v1/issues/{id}/cases</code></td><td>Cases in an Issue, with signals</td></tr>
+      <tr><td><code>GET /v1/cases/{id}/evidence</code></td><td>Evidence for a Case</td></tr>
+      <tr><td><code>POST /v1/issues/{id}/info-requests</code> · <code>GET /v1/info-requests/{id}</code></td><td>Create and read InfoRequests</td></tr>
+      <tr><td><code>POST /v1/guidance</code> · <code>PATCH /v1/guidance/{id}</code></td><td>Draft, approve, retire Guidance</td></tr>
+      <tr><td><code>PATCH /v1/issues/{id}</code></td><td>Update Issue state</td></tr>
+    </table>
+  </div>
+
+  <div class="spec" id="spec-webhook">
+    <h3>Webhook</h3>
+    <p>Event-shaped: pushes an Issue into the enterprise's tracker the moment the CX Lead reports it. The payload carries enough to triage without logging into the support platform.</p>
+    <p><code>issue.reported</code></p>
+<pre>{
+  "event": "issue.reported",
+  "event_id": "evt_8f2c",
+  "issue": { "issue_id": "ISS-1042", "title": "Delivered but not received",
+             "likely_root_cause": { "type": "product_issue", "confidence": 0.91 },
+             "case_count": 37, "first_seen": "Mon 12:48" },
+  "evidence": [ { "issue_id": "ISS-1042", "case_id": "C-40811", "turn": 1,
+                  "quote": "Tracking says delivered but nothing at my door." } ],
+  "investigate_via": { "mcp_server": "signal-mcp", "issue_id": "ISS-1042" }
+}</pre>
+    <p class="sub">Signed (HMAC); <code>event_id</code> makes delivery idempotent.</p>
+  </div>
+
+  <div class="spec" id="spec-mcp">
+    <h3>MCP server <code>signal-mcp</code></h3>
+    <h3>Intents → tools</h3>
+    <table>
+      <tr><th>Engineer's intent</th><th>Tool</th><th>Replaces (Core API)</th><th>Returns</th></tr>
+      <tr><td>"What's going on?"</td><td><code>investigate_issue(issue_id)</code></td><td><code>GET /issues/{id}</code> + <code>GET /issues/{id}/cases</code> + aggregation</td><td>Summary, trend, likely root cause, what cases have in common (and don't), representative evidence</td></tr>
+      <tr><td>"Show me cases that mention X"</td><td><code>find_evidence(issue_id, query)</code></td><td><code>GET /cases?filter=…</code> + reading transcripts</td><td>Matching quotes with case and turn references</td></tr>
+      <tr><td>"Ask affected customers something"</td><td><code>ask_customers(issue_id, question, answers_needed)</code></td><td><code>POST /info-requests</code> + <code>POST /guidance</code> + approval</td><td>Request status and what happens next</td></tr>
+      <tr><td>"What did they say?"</td><td><code>get_customer_answers(issue_id)</code></td><td><code>GET /info-requests/{id}</code> + answers</td><td>Breakdown, whether the target was reached, sample answers linked to evidence</td></tr>
+      <tr><td>"It's fixed"</td><td><code>mark_resolved(issue_id, root_cause, customer_impact)</code></td><td><code>PATCH /issues/{id}</code> + <code>POST /guidance</code></td><td>Confirmation and what happens next</td></tr>
+    </table>
+    <p><b>Deliberate escape hatch:</b> intent-shaped tools are opinionated. <code>find_evidence</code> stays flexible for questions nobody anticipated.</p>
+    <h3>One tool in full: <code>ask_customers</code></h3>
+<pre>{
+  "name": "ask_customers",
+  "description": "Ask customers affected by an issue a diagnostic question. Use when the cause
+    can't be found from existing conversations and customers likely know something your
+    systems don't (their setup, what they saw, what they did). The support platform drafts rep guidance so
+    reps ask the question in new conversations; answers are extracted automatically.
+    Never ask for payment details, passwords, or other sensitive data.",
+  "input": {
+    "issue_id": "string",
+    "question": "string — one question a rep can ask in plain language",
+    "answers_needed": "integer — answers to collect before notifying (default 20)"
+  }
+}
+
+// response
+{
+  "request_id": "RQ-77",
+  "issue_state": "needs_info",
+  "next": "Rep guidance drafted; reps start asking once the CX Lead approves.
+           Answers will be available via get_customer_answers."
+}</pre>
+  </div>
+
+  <div class="spec" id="spec-a2a">
+    <h3>A2A</h3>
+    <p>Task-shaped: the support platform's agent hands outcomes to the enterprise agent that owns each system. <span class="sub">Follows A2A concepts (Agent Card, Task, task states); field names abbreviated.</span></p>
+    <h3>Agent cards — skills are intent-shaped, like the MCP tools</h3>
+    <table>
+      <tr><th>Agent</th><th>Owner</th><th>Skills</th></tr>
+      <tr><td><b>Signal Agent</b></td><td>Support Platform</td><td><code>find_evidence</code>, <code>ask_customers</code></td></tr>
+      <tr><td><b>Release Agent</b></td><td>Enterprise</td><td><code>correlate_changes</code></td></tr>
+      <tr><td><b>Engineering Agent</b></td><td>Enterprise</td><td><code>investigate_issue</code></td></tr>
+      <tr><td><b>KB Agent</b></td><td>Enterprise</td><td><code>publish_guidance</code>, <code>retire_guidance</code></td></tr>
+    </table>
+<pre>{
+  "name": "Signal Agent",
+  "description": "Surfaces product issues from customer conversations and collects
+                  answers from affected customers.",
+  "capabilities": { "streaming": true, "pushNotifications": true },
+  "skills": [
+    { "id": "find_evidence", "description": "Find customer quotes about an issue that match a question." },
+    { "id": "ask_customers", "description": "Collect answers to a diagnostic question from affected customers." }
+  ]
+}</pre>
+    <h3>The Issue lifecycle maps onto A2A task states</h3>
+    <p>the support platform sends <code>investigate_issue</code> to the Engineering Agent. The task's state <i>is</i> the Issue's state:</p>
+    <table>
+      <tr><th>A2A task state</th><th>Issue state</th><th>What's happening</th></tr>
+      <tr><td><code>submitted</code></td><td><code>reported</code></td><td>The support platform hands over the Issue with evidence and correlated changes</td></tr>
+      <tr><td><code>working</code></td><td><code>investigating</code></td><td>Engineering Agent routes to the owning engineer</td></tr>
+      <tr><td><code>input-required</code></td><td><code>needs_info</code></td><td>Engineering Agent needs customer answers; The support platform asks customers and replies on the task</td></tr>
+      <tr><td><code>completed</code></td><td><code>resolved</code></td><td>Fix verified; resolution returned as a task artifact</td></tr>
+    </table>
+<pre>// Engineering Agent → Signal Agent: task needs input
+{
+  "task_id": "T-311",
+  "skill": "investigate_issue",
+  "status": { "state": "input-required",
+    "message": "Can't reproduce. Ask affected customers: 'Do you live in an apartment or
+                building with a mailroom or parcel locker?' Need 20 answers." },
+  "context": { "issue_id": "ISS-1042" }
+}</pre>
+    <p class="sub">The same holds for the other agents: <code>correlate_changes</code> completes with the matching changes as an artifact; <code>publish_guidance</code> completes when guidance is live — immediately for rep-facing guidance, after CX Lead approval for customer-facing.</p>
+  </div>
+</section>
+
+<!-- ================= HARDENING ================= -->
+<section id="hardening">
+  <h2>Tradeoffs</h2>
+
+  <h3>What I'd change for production</h3>
+  <div class="card"><ul>
+    <li><b>Version the data model and every interface.</b> Issue and Case carry a schema version, and the Core API, webhook events, and MCP tools are versioned separately. Enterprises can then move up a tier, or stay put, without anything breaking underneath them.</li>
+    <li><b>Offline evals for classification and clustering.</b> Build a labeled set of conversations, and measure each signal's agreement with human labels plus cluster precision and recall. No model or prompt change ships unless it holds or improves those numbers.</li>
+  </ul></div>
+
+  <h3>What I'd measure</h3>
+  <div class="card"><ul>
+    <li><b>The metrics in the Metrics tab:</b> the north star and each stage's primary metric, each with its guardrail.</li>
+    <li><b>Tier adoption and migration friction:</b> how many enterprises are on each tier, and what it costs to move up (time to onboard, integration issues along the way). If moving up is hard, "no re-integration" isn't true yet.</li>
+    <li><b>MCP usage:</b> which tools engineers call, how often, and whether a session ends in an action (<code>ask_customers</code>, <code>mark_resolved</code>). Tools nobody calls mean I guessed the wrong intents.</li>
+  </ul></div>
+
+  <h3>What I'm unsure about</h3>
+  <div class="card"><ul>
+    <li><b>Webhooks.</b> I don't know yet whether product teams want issues pushed into their tracker, or a different channel such as Slack, on-call paging, or a digest. I'd validate with a handful of product teams before building more than one channel.</li>
+    <li><b>A2A.</b> I don't know whether enterprises will run their own release, engineering, and KB agents, or whether A2A is the protocol they'll adopt. I'd build it with one or two design partners before generalizing.</li>
+  </ul></div>
+</section>
+
+</main>
+<script>
+function show(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  document.querySelectorAll('main > section').forEach(s=>s.classList.toggle('on',s.id===tab));
+  try{history.replaceState(null,'','#'+tab)}catch(e){}
+}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.tab)});
+document.getElementById('subtabs').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#subtabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.spec').forEach(s=>s.classList.toggle('on',s.id==='spec-'+b.dataset.spec));
+});
+const h=(location.hash||'').slice(1);if(document.getElementById(h))show(h);
+</script>
+</body>
+</html>

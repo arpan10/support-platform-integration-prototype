@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal-to-Fix Engine</title>
+<style>
+:root{
+  --bg:#eef0f3; --panel:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb;
+  --plat:#3b5bdb; --plat-soft:#eef2ff; --ent:#0b7a5a; --ent-soft:#e8f6f0;
+  --warn:#b54708; --warn-soft:#fff4e5; --bad:#c4320a; --bad-soft:#fdecea; --good:#067647; --good-soft:#e7f6ec;
+  --cl-bg:#faf9f5; --cl-side:#f3f1ea; --cl-bubble:#f0eee6; --cl-accent:#d97757; --cl-ink:#29261b;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:16px;padding:10px 20px;background:#111827;color:#fff}
+header h1{font-size:15px;margin:0;font-weight:600}
+header .spacer{flex:1}
+.clock{font-variant-numeric:tabular-nums;background:#1f2937;border-radius:6px;padding:4px 10px;font-size:13px}
+.clock b{color:#fcd34d}
+.badge{font-size:12px;border:1px solid #4b5563;border-radius:999px;padding:3px 10px;color:#d1d5db}
+.reset{background:transparent;border:1px solid #4b5563;color:#d1d5db;border-radius:6px;padding:4px 10px;font-size:12px}
+.rail{display:flex;padding:10px 20px 0;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+.rail button{flex:1;min-width:110px;background:none;border:none;border-bottom:3px solid transparent;padding:6px 8px 10px;text-align:left;color:var(--muted)}
+.rail button .n{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--line);color:var(--muted);text-align:center;font-size:12px;line-height:20px;margin-right:6px}
+.rail button.done .n{background:var(--good);color:#fff}
+.rail button.cur{color:var(--ink);border-bottom-color:var(--plat);font-weight:600}
+.rail button.cur .n{background:var(--plat);color:#fff}
+.rail button:disabled{cursor:default;opacity:.55}
+.hint{margin:12px 20px 0;padding:8px 12px;border-radius:8px;background:#fffbeb;border:1px solid #fde68a;font-size:13px}
+.hint b{color:#92400e}
+main{padding:12px 20px 40px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}
+.apps{display:flex;align-items:stretch;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.org{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);align-self:center;margin:0 4px}
+.boundary{border-left:2px dashed #9ca3af;margin:0 10px}
+.apptab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px}
+.apptab.plat.on{background:var(--plat);color:#fff;border-color:var(--plat)}
+.apptab.ent.on{background:var(--ent);color:#fff;border-color:var(--ent)}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:540px}
+.frame-top{padding:8px 14px;font-size:12px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.frame-top .spacer{flex:1}
+.frame-top.plat{background:var(--plat-soft);color:var(--plat)}
+.frame-top.ent{background:var(--ent-soft);color:var(--ent)}
+.persona{display:flex;align-items:center;gap:6px;color:var(--ink)}
+.avatar{width:22px;height:22px;border-radius:50%;background:var(--plat);color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center}
+.handoff{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:10px 14px;border:1px dashed #9ca3af;border-radius:10px;background:#f8f9fb}
+.handoff .sub{font-size:13px}
+.content{padding:16px 20px}
+h2{font-size:17px;margin:0 0 4px}
+h3{font-size:14px;margin:18px 0 8px}
+.sub{color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 12px}
+.btn.primary{background:var(--plat);border-color:var(--plat);color:#fff}
+.btn.ent{background:var(--ent);border-color:var(--ent);color:#fff}
+.btn.small{padding:2px 8px;font-size:12px}
+.btn.x{padding:0 8px;font-size:16px;line-height:22px;color:var(--muted)}
+.pulse{animation:pulse 1.4s infinite;outline:3px solid #f59e0b;outline-offset:2px}
+@keyframes pulse{50%{outline-color:transparent}}
+.stats{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+.stat{border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-width:140px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}
+tr.click{cursor:pointer}
+tr.click:hover td{background:#f9fafb}
+tr.sel td{background:var(--plat-soft)}
+tr.unsure td{background:#fffbeb}
+tr.gone td{opacity:.35;text-decoration:line-through}
+tr.added td{background:var(--good-soft)}
+.chip{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:#f5c2b8}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:#fcd9a8}
+.chip.good{background:var(--good-soft);color:var(--good);border-color:#b7e4c7}
+.chip.blue{background:var(--plat-soft);color:var(--plat);border-color:#c7d2fe}
+.chip.green{background:var(--ent-soft);color:var(--ent);border-color:#a7dcc6}
+.chip.gray{background:#f2f4f7;color:#475467}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0;background:#fff}
+.review{border:2px solid var(--plat);border-radius:10px;padding:12px 14px;margin:12px 0;background:var(--plat-soft)}
+.signals{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px}
+.signals span{font-size:12px;border:1px dashed #a5b4fc;border-radius:6px;padding:2px 8px;background:#fff}
+.quote{border-left:3px solid var(--line);padding:2px 10px;color:#344054;margin:6px 0;font-style:italic}
+.toast{position:fixed;right:20px;bottom:20px;background:#111827;color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;max-width:420px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.progress{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:10px 0;width:320px}
+.progress i{display:block;height:100%;background:var(--plat);width:0;transition:width 1.1s ease}
+pre{background:#0f172a;color:#e2e8f0;padding:10px 12px;border-radius:8px;font-size:12px;overflow:auto;margin:6px 0;white-space:pre-wrap}
+details summary{cursor:pointer;color:var(--muted);font-size:12px}
+/* trace panel */
+.trace{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;position:sticky;top:12px}
+.trace h4{margin:0 0 2px;font-size:13px}
+.trace ol{list-style:none;margin:10px 0 0;padding:0;position:relative}
+.trace li{position:relative;padding:0 0 14px 22px}
+.trace li::before{content:"";position:absolute;left:6px;top:14px;bottom:0;border-left:2px solid var(--line)}
+.trace li:last-child::before{display:none}
+.trace .dot{position:absolute;left:0;top:3px;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.trace .dot.plat{background:var(--plat)}.trace .dot.ent{background:var(--ent)}.trace .dot.human{background:#f59e0b}
+.trace .t{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.trace .what{font-size:13px;font-weight:600}
+.trace .tech{margin-top:2px}
+.trace li.new .what{color:var(--plat)}
+.trace .empty{color:var(--muted);font-size:13px;margin-top:8px}
+/* tracker */
+.tracker{display:grid;grid-template-columns:240px 1fr;min-height:540px}
+.tlist{border-right:1px solid var(--line);background:#fafbfc}
+.titem{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.titem.on{background:var(--ent-soft)}
+.titem small{color:var(--muted);display:block}
+/* claude app window */
+.win{border-radius:12px;overflow:hidden;border:1px solid #d9d6cc;box-shadow:0 10px 30px rgba(0,0,0,.12);background:var(--cl-bg)}
+.titlebar{height:34px;background:#ebe8df;display:flex;align-items:center;padding:0 12px;gap:8px;border-bottom:1px solid #ddd9ce}
+.lights{display:flex;gap:7px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.titlebar .ttl{flex:1;text-align:center;font-size:12px;color:#6b6655;margin-right:50px}
+.clapp{display:grid;grid-template-columns:210px 1fr;grid-template-rows:minmax(0,1fr);height:clamp(420px,calc(100vh - 230px),620px)}
+.clside{background:var(--cl-side);border-right:1px solid #e4e0d5;padding:12px 10px;font-size:13px;color:var(--cl-ink)}
+.clside .logo{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;margin-bottom:14px;font-family:Georgia,"Times New Roman",serif}
+.star{color:var(--cl-accent);font-size:18px;line-height:1}
+.clside .newchat{display:flex;gap:6px;align-items:center;padding:6px 8px;border-radius:8px;color:var(--cl-ink);margin-bottom:12px}
+.clside .newchat b{width:20px;height:20px;border-radius:50%;background:var(--cl-accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:400}
+.clside .lbl{font-size:11px;color:#8a8574;margin:8px 8px 4px}
+.clside .chatitem{padding:6px 8px;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clside .chatitem.on{background:#e6e2d6}
+.clmain{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.clhead{padding:10px 20px;font-size:13px;color:#6b6655;border-bottom:1px solid #eeebe2}
+.clscroll{flex:1;min-height:0;overflow-y:auto}
+.clchat{max-width:680px;margin:0 auto;padding:18px 16px 8px;color:var(--cl-ink)}
+.clmsg{margin:14px 0}
+.clmsg.user{display:flex;justify-content:flex-end}
+.clmsg.user div{background:var(--cl-bubble);border-radius:14px;padding:9px 14px;max-width:85%}
+.clmsg.asst{display:flex;gap:10px}
+.clmsg.asst .star{margin-top:2px}
+.clmsg.asst .body{font-family:Georgia,"Times New Roman",serif;font-size:15px;line-height:1.55;flex:1;min-width:0}
+.clmsg.asst .body p{margin:6px 0}
+.cltool{border:1px solid #e4e0d5;border-radius:10px;margin:6px 0;font:12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff}
+.cltool summary{padding:6px 10px;color:#6b6655;list-style:none}
+.cltool summary::before{content:"▸ ";color:#a39e8c}
+.cltool[open] summary::before{content:"▾ "}
+.cltool.key{border-color:#f5b64b;box-shadow:0 0 0 3px #fdf0d5}
+.cltool pre{margin:0;border-radius:0 0 10px 10px}
+.hl{background:linear-gradient(transparent 45%,#fde68a 45%);padding:0 1px}
+.overnight{margin:22px -16px;padding:14px 16px;background:#1f2937;color:#fff;border-radius:10px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.overnight b{display:block;font-size:16px;color:#fcd34d}
+.overnight span{font-size:13px;color:#d1d5db}
+.clcomposer{padding:10px 16px 16px}
+.clbox{max-width:680px;margin:0 auto;background:#fff;border:1px solid #e0dccf;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:10px 12px}
+.clbox .txt{min-height:22px;color:var(--cl-ink);font-size:14px}
+.clbox .txt.empty{color:#a39e8c}
+.clbox .row2{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:#8a8574}
+.clbox .row2 .spacer{flex:1}
+.conn{border:1px solid #e4e0d5;border-radius:999px;padding:1px 8px}
+.send{width:32px;height:32px;border-radius:10px;border:none;background:var(--cl-accent);color:#fff;font-size:16px}
+.send:disabled{background:#e8c4b4;cursor:default}
+.link{color:#b4532a;text-decoration:underline;cursor:pointer;background:none;border:none;padding:0;font:inherit}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(17,24,39,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:12px;max-width:560px;width:100%;padding:18px 20px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.transcript p{margin:8px 0}
+.transcript .who{font-weight:600;font-size:12px;color:var(--muted);display:block}
+mark{background:#fef3c7;padding:0 2px}
+/* compare */
+.modeled{background:#f5f3ff;border:1px solid #ddd6fe;color:#5b21b6;padding:6px 12px;border-radius:8px;font-size:12px;margin-bottom:10px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.sbar{display:flex;align-items:center;gap:10px;margin:10px 0}
+.sbar .name{width:170px;font-size:13px}
+.sbar .segs{flex:1;display:flex;height:30px}
+.sbar .segs div{height:100%;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap}
+.sbar .tot{width:70px;font-weight:600;font-variant-numeric:tabular-nums}
+.headline{font-size:20px;font-weight:600;margin:18px 0 6px}
+.note{font-size:12px;color:var(--muted)}
+.tech td{font-size:12.5px}
+.tech td:first-child{font-weight:600;width:150px}
+.tech .dur{font-weight:600;font-variant-numeric:tabular-nums}
+.tech .why{color:var(--muted);display:block;margin-top:2px}
+td.gt,th.gt{background:#f5f7ff}
+td.gq,th.gq{background:#f3faf6}
+tr.grp th{border-bottom:none;padding:6px 8px 4px;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
+tr.grp th.gth-t{background:#e0e7ff;color:#3b5bdb;border-radius:6px 6px 0 0;text-align:center;border-bottom:2px solid #3b5bdb}
+tr.grp th.gth-q{background:#dcf2e7;color:#0b7a5a;border-radius:6px 6px 0 0;text-align:center;border-bottom:2px solid #0b7a5a}
+</style>
+</head>
+<body>
+<header>
+  <h1>Signal-to-Fix Engine</h1>
+  <span class="spacer"></span>
+  <button class="reset" data-action="reset">Reset demo</button>
+</header>
+<nav class="rail" id="rail"></nav>
+<main id="main"></main>
+<div id="modal"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- time model (hours since Mon 00:00) ---------- */
+const DAYS=['Mon','Tue','Wed','Thu','Fri'];
+function fmt(h){const d=Math.floor(h/24);const m=Math.round((h-d*24)*60);return `${DAYS[d]} ${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`}
+function dur(h){if(h<1)return Math.round(h*60)+'m';const H=Math.floor(h),M=Math.round((h-H)*60);return M?`${H}h ${M}m`:`${H}h`}
+const T={first:12.8,ingest:20,escalated:20+5/60,ticketSeen:24+9+10/60,e1:24+9+20/60,infoReq:24+9+40/60,guidance:24+13+50/60,e3:48+9+10/60,resolved:48+15+5/60,notice:48+17.5,end:84};
+function rate(h){if(h<T.first)return 0;let r=5*Math.min(1,(h-T.first)/14);if(h>T.resolved)r*=Math.exp(-(h-T.resolved)/4);return r}
+function contactsBetween(a,b){let s=0;for(let h=a;h<b;h+=0.25)s+=rate(h)*0.25;return Math.round(s)}
+const BUCKET=3;
+function buckets(){const out=[];for(let h=6;h<T.end;h+=BUCKET){const n=contactsBetween(h,h+BUCKET);out.push({h,n,poor:Math.round(n*(h+BUCKET/2<T.resolved?0.75:0.3))})}return out}
+
+/* ---------- state ---------- */
+const INIT={view:'apps',app:'console',ingesting:false,ingested:false,openTrend:false,removed:[],added:[],escalated:false,trackerOpened:false,claudeOpened:false,claude:0,overnight:false,impact:false,maxStep:1,clock:T.ingest,modal:false};
+let s=JSON.parse(JSON.stringify(INIT));
+
+/* ---------- content ---------- */
+const TRENDS=[
+ {id:'delivery',name:'Delivered but not received',count:38,lift:'6.3× baseline',cause:'Product issue',causeChip:'bad',conf:0.91,status:'Needs review',statusChip:'warn'},
+ {id:'refund',name:'Refund timing questions',count:64,lift:'1.2× baseline',cause:'Policy',causeChip:'gray',conf:0.64,status:'Watching',statusChip:'gray'},
+ {id:'exchange',name:'Inconsistent exchange answers',count:14,lift:'1.1× baseline',cause:'Knowledge gap',causeChip:'warn',conf:0.72,status:'Watching',statusChip:'gray'},
+];
+const CASES=[
+ {id:'C-40811',t:'Mon 13:12',text:'Tracking says delivered but nothing at my door.',fit:.93,rc:.94,fr:'High',tr:'Worsened',res:'No'},
+ {id:'C-40827',t:'Mon 14:03',text:'Second order this month showing delivered that I never got.',fit:.90,rc:.92,fr:'High',tr:'Worsened',res:'Escalated'},
+ {id:'C-40852',t:'Mon 15:20',text:'Says delivered at 2:14pm. I checked everywhere, nothing.',fit:.95,rc:.95,fr:'Medium',tr:'Flat',res:'No'},
+ {id:'C-40866',t:'Mon 16:05',text:'Delivered?? I have been home all day.',fit:.88,rc:.88,fr:'High',tr:'Worsened',res:'No'},
+ {id:'C-40879',t:'Mon 16:48',text:'My porch camera shows someone walking off with my package.',fit:.58,rc:.41,fr:'High',tr:'Improved',res:'Yes',unsure:true,why:'Likely theft (external), not a product issue'},
+ {id:'C-40893',t:'Mon 17:30',text:'Order NW-88213 shows delivered but it is not here.',fit:.92,rc:.93,fr:'Medium',tr:'Worsened',res:'Escalated'},
+ {id:'C-40905',t:'Mon 18:11',text:'The agent told me to wait 48 hours and ask my neighbors. Seriously?',fit:.89,rc:.90,fr:'High',tr:'Worsened',res:'No'},
+];
+const RELATED=[
+ {id:'C-40934',t:'Mon 19:20',text:'Where is my package? App says it arrived hours ago.',fit:.79,rc:.86,fr:'Medium',tr:'Flat',res:'No'},
+ {id:'C-40940',t:'Mon 19:35',text:'Delivery confirmation came but my parcel locker is empty.',fit:.77,rc:.84,fr:'High',tr:'Worsened',res:'No'},
+];
+const Q='Do you live in an apartment or building with a mailroom or parcel locker?';
+const tool=(name,args,result,key)=>`<details class="cltool ${key?'key':''}"><summary>signal-mcp › <b>${name}</b></summary><pre>${JSON.stringify(args)}\n→ ${JSON.stringify(result,null,2)}</pre></details>`;
+const CLAUDE=[
+ {clock:T.e1,prompt:'Ticket NW-2291 from the support platform: missing deliveries. <span class="hl">I can\'t reproduce it.</span> What are customers saying?',
+  reply:()=>tool('investigate_issue',{issue_id:'ISS-1042'},{summary:'Customers report orders marked delivered that never arrived.',state:'investigating',cases:clusterCount(),first_seen:'Mon 12:48',trend:'6.3x baseline',likely_root_cause:{type:'product_issue',confidence:0.91},in_common:['order status = delivered','carrier scan at correct street address'],not_in_common:{product:'mixed',carrier:'3 carriers',region:'nationwide'},evidence:[{case:'C-40811',turn:1,quote:'Tracking says delivered but nothing at my door.'},{case:'C-40852',turn:1,quote:'Says delivered at 2:14pm. I checked everywhere.'},'…']},true)+
+   `<p>${clusterCount()} customers report orders marked <i>delivered</i> that never arrived. Carrier, product and region vary, so nothing obvious links them. <span class="hl">Customers may know something your systems don't. Want me to ask them?</span></p>`},
+ {clock:T.infoReq,prompt:'Yes. <span class="hl">Ask if they live in an apartment or a building with a mailroom.</span>',
+  reply:()=>tool('ask_customers',{issue_id:'ISS-1042',question:Q,answers_needed:20},{request_id:'RQ-77',issue_state:'needs_info',next:'Rep guidance drafted; reps start asking once the CX Lead approves. Answers will be available via get_customer_answers.'},true)+
+   `<p><span class="hl">Done.</span> Reps will ask affected customers. I'll have the answers here.</p>`},
+ {clock:T.e3,prompt:'Good morning. Any answers?',
+  reply:()=>tool('get_customer_answers',{issue_id:'ISS-1042'},{question:Q,answers:34,target_reached:true,breakdown:{multi_unit_building:29,single_family_home:4,unclear:1},sample:[{case:'C-41377',turn:3,quote:"Yes, it's a 40-unit building."},'…']},true)+
+   `<p><span class="hl"><b>29 of 34 (85%) live in multi-unit buildings.</b></span> <button class="link" data-action="sample">See a sample conversation</button></p><p>Looking at recent changes, <span class="hl">the last release changed how addresses are passed to shipping labels. It stopped including the apartment number.</span></p>`},
+ {clock:T.resolved,prompt:'Confirmed. <span class="hl">Fixed. Mark it resolved.</span>',
+  reply:()=>tool('mark_resolved',{issue_id:'ISS-1042',root_cause:'Last release stopped passing the apartment number (address line 2) to shipping labels. Fix deployed.',customer_impact:'Affected orders are being reshipped.'},{issue_state:'resolved',next:'Resolution notice drafted for reps and customers; goes live once the CX Lead approves.'},true)+
+   `<p><span class="hl">Resolved.</span> The support platform will update the reps once the CX Lead approves the notice.</p>`},
+];
+
+/* ---------- steps & hints ---------- */
+const STEPS=['Ingest','Triage','Investigate','Resolve','Impact'];
+function step(){if(!s.ingested)return 1;if(!s.escalated)return 2;if(s.claude<2)return 3;if(!s.impact)return 4;return 5}
+function hint(){
+  const st=step();
+  if(st===1)return['Click <b>Ingest & score</b>.','ingest'];
+  if(st===2){if(!s.openTrend)return['Open the <b>Delivered but not received</b> trend to review it.','open-trend'];return['Review the cluster: remove anything that doesn\'t belong (the system flagged one), add related conversations, then <b>Send to product team</b>.','escalate']}
+  if(st===3){if(!s.trackerOpened)return['The webhook fired. <b>Switch to the enterprise side</b> to see the ticket.','go-tracker'];if(!s.claudeOpened)return['The engineer investigates with their own AI assistant: <b>Open Claude</b>.','go-claude'];if(s.app!=='claude')return['Open <b>Claude</b>.','app-claude'];return['<b>Send</b> the prompt. Claude calls the support platform\'s MCP server (highlighted).','send']}
+  if(st===4){if(s.app!=='claude')return['Open <b>Claude</b>.','app-claude'];if(!s.overnight)return['Time passes overnight…',null];if(s.claude<4)return['<b>Send</b> the next prompt.','send'];return['<b>Switch to the support platform side</b> to see the impact.','go-impact']}
+  if(st===5&&s.app!=='console')return['Open <b>Support Platform Console</b>.','app-console'];
+  return['End of the walkthrough. Use the step rail to revisit any step.',null];
+}
+
+/* ---------- render ---------- */
+function render(){
+  const st=step();s.maxStep=Math.max(s.maxStep,st);
+  document.getElementById('rail').innerHTML=STEPS.map((x,i)=>{const n=i+1;const cls=n===st?'cur':(n<=s.maxStep?'done':'');return `<button class="${cls}" data-action="rail" data-n="${n}" ${n>s.maxStep?'disabled':''}><span class="n">${n}</span>${x}</button>`}).join('');
+  const [h,target]=hint();
+  document.getElementById('main').innerHTML=renderApps();
+  document.getElementById('modal').innerHTML=s.modal?renderModal():'';
+  if(target){const el=document.querySelector(`[data-action="${target}"]`);if(el)el.classList.add('pulse')}
+  const cs=document.querySelector('.clscroll');if(cs)cs.scrollTop=cs.scrollHeight;
+}
+function renderApps(){
+  const tab=(id,label,cls)=>`<button class="apptab ${cls} ${s.app===id?'on':''}" data-action="app-${id}">${label}</button>`;
+  let html=`<div class="apps"><span class="org">Support Platform</span>${tab('console','Support Platform Console','plat')}
+   <span class="boundary"></span><span class="org">Northwind Outfitters (enterprise)</span>
+   ${tab('tracker','Tracker','ent')}${tab('claude','Claude','ent')}</div>`;
+  if(s.app==='console')html+=frame('plat','Support Platform Console · Northwind Outfitters workspace',renderConsole(),'<span class="persona"><span class="avatar">CX</span>CX Lead</span>');
+  if(s.app==='tracker')html+=frame('ent','Northwind Tracker · Checkout & Fulfillment',renderTracker(),'<span class="persona" style="color:var(--ent)">Sam Ortiz, engineer</span>');
+  if(s.app==='claude')html+=renderClaude();
+  html+=renderHandoff();
+  return html;
+}
+function frame(cls,title,body,right=''){return `<div class="frame"><div class="frame-top ${cls}">${title}<span class="spacer"></span>${right}</div>${body}</div>`}
+function renderHandoff(){
+  if(s.app==='console'&&s.escalated&&!s.impact)return `<div class="handoff"><span class="sub">Webhook sent to Northwind's tracker. The next step happens on the enterprise side.</span><button class="btn ent" data-action="go-tracker">Switch to enterprise side: Tracker ▸</button></div>`;
+  if(s.app==='tracker'&&s.escalated)return `<div class="handoff"><span class="sub">The engineer investigates with their own AI assistant, connected to the support platform's MCP server.</span><button class="btn ent" data-action="go-claude">Open Claude ▸</button></div>`;
+  if(s.app==='claude'&&s.claude>=4)return `<div class="handoff"><span class="sub">The issue is resolved on the enterprise side. The support platform measures the effect.</span><button class="btn primary" data-action="go-impact">Switch to support platform side: Impact ▸</button></div>`;
+  return '';
+}
+
+function renderConsole(){return `<div class="content">${s.impact?renderImpact():renderTrends()}</div>`}
+function clusterCount(){return 38-s.removed.length+s.added.length}
+function renderTrends(){
+  if(!s.ingested){
+    return `<h2>Ingest conversations</h2><div class="sub">Source: Northwind Outfitters (online apparel retailer) · synthetic replay, Mon 00:00 onward</div>
+    <div class="card"><div>Load <b>Mon 00:00 → 20:00</b> · 212 conversations</div>
+    <div class="sub">Each conversation is scored for likely root cause, cluster fit, frustration at start, sentiment trajectory, and whether it was resolved.</div>
+    ${s.ingesting?'<div class="progress"><i id="pg"></i></div><div class="sub">Scoring…</div>':'<p><button class="btn primary" data-action="ingest">Ingest & score</button></p>'}</div>`;
+  }
+  let html=`<h2>Trending issues</h2><div class="sub">212 conversations scored · clusters ranked by lift over baseline</div>
+  <table style="margin-top:10px"><tr><th>Trend</th><th>Conversations</th><th>Lift</th><th>Likely root cause</th><th>Confidence</th><th>Status</th></tr>`;
+  TRENDS.forEach(t=>{const main=t.id==='delivery';const c=main?clusterCount():t.count;const st=main&&s.escalated?'<span class="chip good">Sent to product · NW-2291</span>':`<span class="chip ${t.statusChip}">${t.status}</span>`;
+    html+=`<tr class="${main?'click':''} ${main&&s.openTrend?'sel':''}" ${main?'data-action="open-trend"':''}><td><b>${t.name}</b></td><td>${c}</td><td>${t.lift}</td><td><span class="chip ${t.causeChip}">${t.cause}</span></td><td>${t.conf.toFixed(2)}</td><td>${st}</td></tr>`});
+  html+='</table>';
+  if(s.openTrend)html+=renderDetail();
+  return html;
+}
+function caseRow(c,isRelated){
+  const gone=s.removed.includes(c.id),added=s.added.includes(c.id);
+  const trc=c.tr==='Worsened'?'bad':(c.tr==='Improved'?'good':'gray');
+  const resc=c.res==='Yes'?'good':(c.res==='Escalated'?'bad':'gray');
+  let action='';
+  if(!s.escalated){
+    if(isRelated)action=added?'<span class="chip good">Added</span>':`<button class="btn small" data-action="add" data-id="${c.id}">Add</button>`;
+    else action=gone?`<button class="btn small" data-action="undo" data-id="${c.id}">Undo</button>`:`<button class="btn x" title="Remove from cluster" data-action="remove" data-id="${c.id}">×</button>`;
+  }
+  return `<tr class="${c.unsure&&!gone?'unsure':''} ${gone?'gone':''} ${added?'added':''}"><td>${c.id}<br><span class="sub">${c.t}</span></td><td>${c.text}${c.unsure&&!gone?`<br><span class="chip warn">System unsure · ${c.why}</span>`:''}</td><td class="gt">${c.rc.toFixed(2)}</td><td class="gt">${c.fit.toFixed(2)}</td><td class="gq">${c.fr}</td><td class="gq"><span class="chip ${trc}">${c.tr}</span></td><td class="gq"><span class="chip ${resc}">${c.res}</span></td><td>${action}</td></tr>`;
+}
+function renderDetail(){
+  const n=clusterCount();
+  const head='<tr class="grp"><th colspan="2"></th><th colspan="2" class="gth-t">Triage signals</th><th colspan="3" class="gth-q">Quality signals</th><th></th></tr><tr><th>ID</th><th>Opening message</th><th class="gt">Product issue</th><th class="gt">Cluster fit</th><th class="gq">Frustration at start</th><th class="gq">Trajectory</th><th class="gq">Resolved?</th><th></th></tr>';
+  return `<div class="card"><h2>Delivered but not received</h2>
+  <div><span class="chip bad">Likely root cause: product issue · 0.91</span></div>
+  <div class="sub" style="margin-top:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:11px">Issue summary</div>
+  <p style="margin-top:2px">Customers report orders marked "delivered" that never arrived.</p>
+  <h3>In cluster · ${n} conversations (showing ${CASES.length})</h3>
+  <table>${head}${CASES.map(c=>caseRow(c,false)).join('')}</table>
+  <h3>Possibly related · not in cluster</h3>
+  <table>${head}${RELATED.map(c=>caseRow(c,true)).join('')}</table>
+  <p style="margin-top:14px">${s.escalated?'<span class="chip good">Sent to Northwind product team · webhook delivered · ticket NW-2291</span>':`<button class="btn primary" data-action="escalate">Send ${n} conversations to product team</button>`}</p></div>`;
+}
+function renderImpact(){
+  const d=buckets();const W=900,H=240,pad=34,bw=(W-pad)/d.length,max=Math.max(...d.map(x=>x.n));
+  const X=h=>pad+(h-6)/BUCKET*bw, Y=v=>H-v/max*(H-50);
+  let svg=`<svg viewBox="0 0 ${W} ${H+30}" width="100%" role="img" aria-label="Conversations about the issue over time">`;
+  d.forEach(x=>{svg+=`<rect x="${X(x.h)+2}" y="${Y(x.n)}" width="${bw-4}" height="${H-Y(x.n)}" fill="#cbd5e1"/><rect x="${X(x.h)+2}" y="${Y(x.poor)}" width="${bw-4}" height="${H-Y(x.poor)}" fill="#c4320a"/>`});
+  [[T.first,'First report · '+fmt(T.first),'start'],[T.resolved,'Product team: resolved · '+fmt(T.resolved),'end']].forEach(m=>{svg+=`<line x1="${X(m[0])}" x2="${X(m[0])}" y1="18" y2="${H}" stroke="#111" stroke-width="1.5" stroke-dasharray="4,3"/><text x="${X(m[0])+(m[2]==='start'?5:-5)}" y="14" text-anchor="${m[2]}" font-size="12" font-weight="600" fill="#111">${m[1]}</text>`});
+  svg+=`<line x1="${pad}" x2="${W}" y1="${H}" y2="${H}" stroke="#667085"/>`;
+  [24,48,72].forEach(h=>svg+=`<text x="${X(h)}" y="${H+16}" font-size="11" fill="#667085">${DAYS[h/24]}</text>`);
+  svg+='</svg>';
+  const total=contactsBetween(T.first,T.end),poor=d.reduce((a,x)=>a+x.poor,0);
+  return `<h2>Impact · Delivered but not received</h2>
+  <div class="stats"><div class="stat"><b>${dur(T.resolved-T.first)}</b><span>first report → product team resolved</span></div><div class="stat"><b>${total}</b><span>conversations about the issue</span></div><div class="stat"><b>${poor}</b><span>ended poorly</span></div></div>
+  <div class="legend"><span><i style="background:#cbd5e1"></i>All conversations</span><span><i style="background:#c4320a"></i>Ended poorly (unresolved, escalated, or worsened)</span></div>${svg}`;
+}
+function renderTracker(){
+  if(!s.escalated)return `<div class="tracker"><div class="tlist"><div class="titem">NW-2284 · Checkout latency p95<small>In progress</small></div><div class="titem">NW-2270 · Size chart copy update<small>Done</small></div></div><div class="content sub">No new tickets.</div></div>`;
+  const n=clusterCount();
+  const payload={event:'issue.reported',issue:{id:'ISS-1042',title:'Delivered but not received',conversations:n,first_seen:'Mon 12:48',likely_root_cause:{type:'product_issue',confidence:0.91}},evidence:[{case:'C-40811',quote:'Tracking says delivered but nothing at my door.'},{case:'C-40852',quote:'Says delivered at 2:14pm. I checked everywhere.'}],case_ids:['C-40811','C-40827','…'],mcp:{server:'signal-mcp',issue_id:'ISS-1042'}};
+  return `<div class="tracker"><div class="tlist"><div class="titem on"><b>NW-2291</b> · [Support Platform] Delivered but not received<small>Needs triage · ${fmt(T.escalated)}</small></div><div class="titem">NW-2284 · Checkout latency p95<small>In progress</small></div><div class="titem">NW-2270 · Size chart copy update<small>Done</small></div></div>
+  <div class="content"><h2>NW-2291 · [Support Platform] Delivered but not received</h2><div class="sub">Reporter: Support Platform (webhook) · Assignee: Sam Ortiz</div>
+  <div class="card"><div><span class="chip bad">Likely root cause: product issue · 0.91</span></div>
+  <p><b>${n} conversations</b> since Mon 12:48 (6.3× baseline). Customers report orders marked delivered that never arrived.</p>
+  <div class="quote">"Tracking says delivered but nothing at my door." (C-40811)</div><div class="quote">"Says delivered at 2:14pm. I checked everywhere." (C-40852)</div>
+  <p class="sub">Investigate via MCP server <code>signal-mcp</code>, issue <code>ISS-1042</code></p>
+  <details><summary>Webhook payload</summary><pre>${JSON.stringify(payload,null,2)}</pre></details></div></div></div>`;
+}
+function renderClaude(){
+  let body='';
+  CLAUDE.slice(0,s.claude).forEach((x,i)=>{
+    body+=`<div class="clmsg user"><div>${x.prompt}</div></div><div class="clmsg asst"><span class="star">✳</span><div class="body">${x.reply()}</div></div>`;
+    if(i===1&&s.overnight)body+=`<div class="overnight"><b>☾ Overnight · ${dur(T.e3-T.infoReq)} later</b><span>Reps asked affected customers the question. It's now ${fmt(T.e3)}.</span></div>`;
+  });
+  if(!body)body=`<div style="text-align:center;padding:90px 0;font-family:Georgia,serif;font-size:24px;color:var(--cl-ink)"><span class="star">✳</span> Good morning, Sam</div>`;
+  const next=CLAUDE[s.claude];const blocked=s.claude===2&&!s.overnight;
+  const composer=`<div class="clcomposer"><div class="clbox"><div class="txt ${next&&!blocked?'':'empty'}">${next&&!blocked?next.prompt.replace(/<[^>]+>/g,''):'Reply to Claude…'}</div>
+   <div class="row2"><span class="conn">⚙ signal-mcp</span><span class="spacer"></span><span>Claude</span><button class="send" data-action="send" ${next&&!blocked?'':'disabled'}>↑</button></div></div></div>`;
+  return `<div class="win"><div class="titlebar"><span class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></span><span class="ttl">Claude</span></div>
+  <div class="clapp"><div class="clside"><div class="logo"><span class="star">✳</span>Claude</div><div class="newchat"><b>+</b>New chat</div>
+   <div class="lbl">Recents</div><div class="chatitem ${s.claude?'on':''}">${s.claude?'Missing deliveries · NW-2291':'…'}</div><div class="chatitem">Checkout latency p95</div><div class="chatitem">Address form rollout checklist</div><div class="chatitem">Label API rate limits</div></div>
+   <div class="clmain"><div class="clhead">${s.claude?'Missing deliveries · NW-2291':'New chat'}</div><div class="clscroll"><div class="clchat">${body}</div></div>${composer}</div></div></div>`;
+}
+function renderModal(){
+  return `<div class="overlay" data-action="overlay"><div class="modal">
+  <div style="display:flex;align-items:center"><h2 style="flex:1">Conversation C-41377 · Tue 16:22</h2><button class="btn x" data-action="close-modal" aria-label="Close">×</button></div>
+  <div class="transcript">
+   <p><span class="who">Customer</span>My order shows delivered but I don't have it.</p>
+   <p><span class="who">Rep</span>I'm sorry about that. We're aware some deliveries are showing as delivered without arriving, and our team is on it. One quick question that helps them: <mark>do you live in an apartment or a building with a mailroom or parcel locker?</mark></p>
+   <p><span class="who">Customer</span><mark>Yes, it's a 40-unit building.</mark></p>
+   <p><span class="who">Rep</span>Thank you, that's really helpful. I've added it to your case, and I'll make sure you're updated as soon as it's fixed.</p>
+  </div>
+  <div class="card" style="margin-bottom:0"><b>Extracted:</b> multi_unit = <b>yes</b> · confidence 0.97 · source: turn 3</div></div></div>`;
+}
+/* ---------- actions ---------- */
+function toast(t){const el=document.getElementById('toast');el.innerHTML=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,3500)}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;
+  if(a==='overlay'){if(e.target===el){s.modal=false;render()}return}
+  if(a==='close-modal'){s.modal=false;return render()}
+  if(a==='reset'){clearTimeout(window._ov);s=JSON.parse(JSON.stringify(INIT));document.getElementById('toast').hidden=true;return render()}
+  if(a==='rail'){const n=+el.dataset.n;if(n<=2){s.app='console';s.impact=false}if(n===3||n===4)s.app='claude';if(n===5){s.app='console';s.impact=true}return render()}
+  if(a.startsWith('app-')){s.app=a.slice(4);if(s.app==='tracker'&&s.escalated)s.trackerOpened=true;return render()}
+  if(a==='ingest'){s.ingesting=true;render();requestAnimationFrame(()=>{const p=document.getElementById('pg');if(p)p.style.width='100%'});setTimeout(()=>{s.ingesting=false;s.ingested=true;render();toast('212 conversations scored · 3 trending issues')},1200);return}
+  if(a==='open-trend'){s.openTrend=true;return render()}
+  if(a==='remove'){s.removed.push(id);toast(id+' removed from cluster · correction logged');return render()}
+  if(a==='undo'){s.removed=s.removed.filter(x=>x!==id);return render()}
+  if(a==='add'){s.added.push(id);toast(id+' added to cluster');return render()}
+  if(a==='escalate'){s.escalated=true;s.clock=T.escalated;toast('Webhook delivered to Northwind tracker → NW-2291');return render()}
+  if(a==='go-tracker'){s.app='tracker';s.trackerOpened=true;s.clock=T.ticketSeen;return render()}
+  if(a==='go-claude'){s.app='claude';s.claudeOpened=true;return render()}
+  if(a==='send'){const x=CLAUDE[s.claude];s.claude++;s.clock=x.clock;render();
+    if(s.claude===2){window._ov=setTimeout(()=>{s.overnight=true;s.clock=T.e3;render()},1600)}return}
+  if(a==='sample'){s.modal=true;return render()}
+  if(a==='go-impact'){s.app='console';s.impact=true;s.clock=T.end;return render()}
+});
+render();
+</script>
+</body>
+</html>

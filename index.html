@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Remove the noindex line below when you are ready to publish. -->
+<meta name="robots" content="noindex">
+<title>Signal-to-Fix Engine</title>
+<style>
+:root{--bg:#f6f7f9;--ink:#1d2330;--muted:#667085;--line:#e3e6eb;--plat:#3b5bdb;--plat-soft:#eef2ff;--ent:#0b7a5a;--ent-soft:#e8f6f0;
+  --t1:#475467;--t1s:#f2f4f7;--t2:#0e7490;--t2s:#e6f6f9;--t3:#6d28d9;--t3s:#f3effe}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:920px;margin:0 auto;padding:48px 24px 72px}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--plat)}
+h1{font-size:40px;line-height:1.1;margin:8px 0 10px}
+.headline{font-size:20px;color:#344054;margin:0 0 16px;max-width:720px}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:12px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 11px;color:#475467}
+section{margin-top:52px}
+h2{font-size:22px;margin:0 0 14px}
+h2 .n{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;background:var(--ink);color:#fff;font-size:13px;margin-right:10px;vertical-align:2px}
+ul{margin:0 0 14px;padding-left:20px}
+li{margin:7px 0}
+.tldr{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px 22px;margin-top:28px}
+.tldr li b{color:var(--plat)}
+svg.diagram{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line);border-radius:14px;margin:16px 0 6px}
+svg.diagram text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.cap{font-size:13px;color:var(--muted);margin:2px 0 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h3{font-size:16px;margin:0 0 4px}
+.card p{margin:0 0 10px;color:#344054;font-size:14.5px}
+.mini{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px}
+.pill{border:1px solid var(--line);background:#f9fafb;border-radius:999px;padding:2px 10px;color:#475467}
+.pill.dark{background:#111827;color:#fff;border-color:#111827}
+.pill.blue{background:var(--plat-soft);color:var(--plat);border-color:#c7d2fe}
+.pill.green{background:var(--ent-soft);color:var(--ent);border-color:#a7dcc6}
+.pill.amber{background:#fff4e5;color:#b54708;border-color:#fcd9a8}
+.arrow{color:#98a2b3}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.col .who{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.col .stage{font-weight:700;margin-bottom:8px}
+.col .m{font-size:14px;margin:6px 0}
+.col .m small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.bars{margin-top:18px}
+.bar{display:flex;align-items:center;gap:12px;margin:8px 0;font-size:14px}
+.bar .l{width:96px;font-weight:600}
+.bar .t{flex:1;background:#eef0f3;border-radius:6px;height:26px;overflow:hidden}
+.bar .f{height:100%;display:flex;align-items:center;padding-left:10px;color:#fff;font-weight:700;font-size:13px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{display:inline-block;text-decoration:none;font-weight:600;font-size:14px;border-radius:10px;padding:10px 16px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+.btn.primary{background:var(--plat);border-color:var(--plat);color:#fff}
+details{margin-top:12px;font-size:14px;color:#475467}
+summary{cursor:pointer;color:var(--plat)}
+.foot{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (max-width:760px){.grid,.cols{grid-template-columns:1fr}h1{font-size:32px}.wrap{padding:32px 16px 56px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Product design exploration</div>
+  <h1>Signal-to-Fix Engine</h1>
+  <p class="headline">One support platform for three stages of AI adoption, shown through the support-to-product loop.</p>
+  <div class="meta"><span class="chip">Solo product exploration</span><span class="chip">Interactive prototype</span><span class="chip">Synthetic data · modeled numbers</span></div>
+  <ul class="tldr">
+    <li><b>The problem:</b> support is where product issues surface first, but the fix reaches the front line slowly.</li>
+    <li><b>The design challenge:</b> enterprises are at very different stages of AI adoption, and a platform can't force a rebuild to move up.</li>
+    <li><b>The answer:</b> one data model and three integration tiers. Each tier removes a different kind of waiting.</li>
+  </ul>
+</header>
+
+<section>
+  <h2><span class="n">1</span>The use case: the support-to-product loop</h2>
+  <ul>
+    <li>Orders show "delivered" but never reach customers in apartment buildings. Every system says success, so support hears first.</li>
+    <li><b>Goal:</b> shorten the time from the first affected conversation to every rep giving the right answer.</li>
+    <li>The support platform <b>triages</b> (spots the pattern, reports it with evidence). The enterprise <b>investigates and informs</b> (finds the cause, gets guidance to reps).</li>
+  </ul>
+  <svg class="diagram" viewBox="0 0 1000 470" role="img" aria-label="Loop: customers report an issue, the support platform triages, the enterprise product team investigates and informs reps, customer reports subside">
+    <defs>
+      <marker id="arL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475467"/></marker>
+    </defs>
+
+    <!-- columns -->
+    <text x="150" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#475467" letter-spacing="1">CUSTOMERS</text>
+    <rect x="300" y="48" width="340" height="400" rx="16" fill="#eef2ff"/>
+    <text x="470" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#3b5bdb" letter-spacing="1">SUPPORT PLATFORM</text>
+    <rect x="680" y="48" width="300" height="400" rx="16" fill="#e8f6f0"/>
+    <text x="830" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#0b7a5a" letter-spacing="1">ENTERPRISE</text>
+    <line x1="660" y1="20" x2="660" y2="460" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7,5"/>
+
+    <!-- 1. customers report (spike) -->
+    <rect x="40" y="80" width="220" height="120" rx="12" fill="#fff" stroke="#e3e6eb"/>
+    <text x="56" y="106" font-size="14" font-weight="700" fill="#1d2330">Customers report</text>
+    <text x="56" y="124" font-size="13" fill="#667085">a product issue</text>
+    <g fill="#c4320a">
+      <rect x="60" y="178" width="14" height="6"/><rect x="80" y="172" width="14" height="12"/><rect x="100" y="164" width="14" height="20"/>
+      <rect x="120" y="154" width="14" height="30"/><rect x="140" y="146" width="14" height="38"/><rect x="160" y="140" width="14" height="44"/>
+    </g>
+    <text x="184" y="176" font-size="12" font-weight="600" fill="#c4320a">spike ↑</text>
+
+    <!-- 2. triage -->
+    <rect x="360" y="80" width="220" height="120" rx="12" fill="#fff" stroke="#3b5bdb" stroke-width="2"/>
+    <rect x="376" y="92" width="112" height="22" rx="11" fill="#3b5bdb"/>
+    <text x="432" y="107" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Phase 1 · Triage</text>
+    <text x="376" y="138" font-size="13.5" fill="#1d2330">Spots the pattern, confirms</text>
+    <text x="376" y="156" font-size="13.5" fill="#1d2330">it's a product issue, reports</text>
+    <text x="376" y="174" font-size="13.5" fill="#1d2330">it with evidence</text>
+
+    <!-- 3. investigate -->
+    <rect x="720" y="170" width="220" height="130" rx="12" fill="#fff" stroke="#0b7a5a" stroke-width="2"/>
+    <rect x="736" y="182" width="188" height="22" rx="11" fill="#0b7a5a"/>
+    <text x="830" y="197" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Phase 2 · Investigate &amp; inform</text>
+    <text x="736" y="228" font-size="14" font-weight="700" fill="#1d2330">Product team investigates</text>
+    <text x="736" y="248" font-size="13.5" fill="#1d2330">Finds the cause; asks reps</text>
+    <text x="736" y="266" font-size="13.5" fill="#1d2330">to get more info from</text>
+    <text x="736" y="284" font-size="13.5" fill="#1d2330">customers if needed</text>
+
+    <!-- 4. inform reps -->
+    <rect x="360" y="290" width="220" height="120" rx="12" fill="#fff" stroke="#3b5bdb" stroke-width="2"/>
+    <text x="376" y="324" font-size="14" font-weight="700" fill="#1d2330">Reps get the right guidance</text>
+    <text x="376" y="346" font-size="13.5" fill="#1d2330">Human and AI reps answer</text>
+    <text x="376" y="364" font-size="13.5" fill="#1d2330">correctly from the next</text>
+    <text x="376" y="382" font-size="13.5" fill="#1d2330">conversation on</text>
+
+    <!-- 5. subside -->
+    <rect x="40" y="290" width="220" height="120" rx="12" fill="#fff" stroke="#e3e6eb"/>
+    <text x="56" y="316" font-size="14" font-weight="700" fill="#1d2330">Customer reports</text>
+    <text x="56" y="334" font-size="13" fill="#667085">subside</text>
+    <g fill="#067647">
+      <rect x="60" y="350" width="14" height="44"/><rect x="80" y="358" width="14" height="36"/><rect x="100" y="368" width="14" height="26"/>
+      <rect x="120" y="376" width="14" height="18"/><rect x="140" y="384" width="14" height="10"/><rect x="160" y="389" width="14" height="5"/>
+    </g>
+    <text x="184" y="386" font-size="12" font-weight="600" fill="#067647">↓</text>
+
+    <!-- arrows -->
+    <path d="M262,140 L356,140" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#arL)"/>
+    <text x="309" y="132" text-anchor="middle" font-size="11.5" fill="#475467">conversations</text>
+
+    <path d="M582,140 C680,140 740,140 800,166" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#arL)"/>
+    <text x="668" y="128" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d2330">report</text>
+
+    <path d="M800,304 C740,340 680,350 584,350" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#arL)"/>
+    <text x="668" y="365" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d2330">guidance</text>
+
+    <path d="M582,312 C630,300 670,266 716,256" stroke="#0b7a5a" stroke-width="2" stroke-dasharray="4,4" fill="none" marker-end="url(#arL)"/>
+    <rect x="586" y="266" width="124" height="18" rx="4" fill="#fff" opacity=".9"/>
+    <text x="648" y="279" text-anchor="middle" font-size="11" font-weight="600" fill="#0b7a5a">provide requested info</text>
+
+    <path d="M358,350 L264,350" stroke="#475467" stroke-width="2" fill="none" marker-end="url(#arL)"/>
+    <text x="309" y="342" text-anchor="middle" font-size="11.5" fill="#475467">right answers</text>
+
+    <path d="M150,288 L150,204" stroke="#98a2b3" stroke-width="2" stroke-dasharray="5,4" fill="none" marker-end="url(#arL)"/>
+    <text x="158" y="250" font-size="11.5" fill="#667085">loop closes</text>
+
+    <!-- center -->
+    <text x="470" y="245" text-anchor="middle" font-size="26" fill="#3b5bdb">↻</text>
+    <text x="470" y="268" text-anchor="middle" font-size="12" font-weight="600" fill="#3b5bdb">Signal-to-Fix Engine</text>
+  </svg>
+</section>
+
+<section>
+  <h2><span class="n">2</span>The design problem: three stages of AI adoption</h2>
+  <ul>
+    <li>Enterprises won't adopt AI all at once. Some work in tickets and dashboards, some have engineers living in AI assistants, some will run their own agents.</li>
+    <li>A platform that forces a rebuild to move up loses the ones that aren't ready and underserves the ones that are.</li>
+    <li>So: <b>one engine, one data model, three ways to plug in.</b></li>
+  </ul>
+  <svg class="diagram" viewBox="0 0 1000 660" role="img" aria-label="The support platform with core APIs on the left connects to three enterprises: Heritage Mercantile via dashboard, Northwind Outfitters via webhook and MCP, Autonomix via release, engineering and KB agents over A2A">
+    <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#98a2b3"/></marker></defs>
+    <rect x="40" y="30" width="300" height="610" rx="16" fill="#eef2ff" stroke="#3b5bdb" stroke-width="2"/>
+    <text x="60" y="64" font-size="13" font-weight="700" fill="#3b5bdb" letter-spacing="1">SUPPORT PLATFORM</text>
+    <text x="60" y="88" font-size="18" font-weight="700" fill="#1d2330">Signal-to-Fix</text>
+    <text x="60" y="110" font-size="18" font-weight="700" fill="#1d2330">Engine</text>
+    <text x="60" y="290" font-size="12.5" font-weight="700" fill="#475467">Same data model,</text>
+    <text x="60" y="307" font-size="12.5" font-weight="700" fill="#475467">every tier:</text>
+    <text x="64" y="332" font-size="12.5" fill="#475467">•  Issue</text>
+    <text x="64" y="352" font-size="12.5" fill="#475467">•  Case</text>
+    <text x="64" y="372" font-size="12.5" fill="#475467">•  Evidence</text>
+    <text x="64" y="392" font-size="12.5" fill="#475467">•  InfoRequest</text>
+    <text x="64" y="412" font-size="12.5" fill="#475467">•  Guidance</text>
+    <rect x="250" y="50" width="74" height="570" rx="10" fill="#fff" stroke="#3b5bdb" stroke-width="1.5"/>
+    <text transform="translate(292,335) rotate(-90)" text-anchor="middle" font-size="14" font-weight="700" fill="#3b5bdb" letter-spacing="1">CORE APIs</text>
+    <line x1="420" y1="20" x2="420" y2="650" stroke="#9ca3af" stroke-width="2" stroke-dasharray="7,5"/>
+    <text x="412" y="24" text-anchor="end" font-size="11" fill="#667085">← Support Platform</text>
+    <text x="428" y="24" font-size="11" fill="#667085">Enterprise →</text>
+    <!-- Human-led -->
+    <line x1="324" y1="132" x2="500" y2="132" stroke="#475467" stroke-width="2"/>
+    <rect x="345" y="120" width="150" height="24" rx="12" fill="#475467"/>
+    <text x="420" y="136" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Dashboard + Tickets</text>
+    <rect x="500" y="40" width="420" height="184" rx="14" fill="#f2f4f7" stroke="#475467" stroke-width="1.5"/>
+    <rect x="516" y="56" width="88.39999999999999" height="22" rx="11" fill="#475467"/>
+    <text x="526" y="71" font-size="12" font-weight="700" fill="#fff">Human-led</text>
+    <text x="904" y="71" text-anchor="end" font-size="12.5" fill="#475467"><tspan font-weight="700">Mechanic:</tspan> people go and look</text>
+    <text x="516" y="104" font-size="17" font-weight="700" fill="#1d2330">Heritage Mercantile</text>
+    <text x="516" y="125" font-size="13" fill="#667085">Traditional retailer; small tech team, works in tickets</text>
+    <rect x="516" y="142" width="125.5" height="26" rx="13" fill="#ffffff" stroke="#d0d5dd"/>
+    <text x="578.75" y="159" text-anchor="middle" font-size="12.5" font-weight="600" fill="#475467">Dashboard</text>
+    <line x1="516" y1="182" x2="904" y2="182" stroke="#d0d5dd"/>
+    <text x="516" y="206" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#475467">~100</tspan>  conversations without the right guidance</text>
+    <!-- Mixed -->
+    <line x1="324" y1="335" x2="500" y2="335" stroke="#0e7490" stroke-width="2"/>
+    <rect x="355.0" y="323" width="130" height="24" rx="12" fill="#0e7490"/>
+    <text x="420" y="339" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Webhook + MCP</text>
+    <rect x="500" y="243" width="420" height="184" rx="14" fill="#e6f6f9" stroke="#0e7490" stroke-width="1.5"/>
+    <rect x="516" y="259" width="58.0" height="22" rx="11" fill="#0e7490"/>
+    <text x="526" y="274" font-size="12" font-weight="700" fill="#fff">Mixed</text>
+    <text x="904" y="274" text-anchor="end" font-size="12.5" fill="#0e7490"><tspan font-weight="700">Mechanic:</tspan> information is pushed and queried</text>
+    <text x="516" y="307" font-size="17" font-weight="700" fill="#1d2330">Northwind Outfitters</text>
+    <text x="516" y="328" font-size="13" fill="#667085">Modern retailer; engineers already work with AI assistants</text>
+    <rect x="516" y="345" width="70.30000000000001" height="26" rx="13" fill="#ffffff" stroke="#a5dbe6"/>
+    <text x="551.15" y="362" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0e7490">Webhook</text>
+    <rect x="594.3" y="345" width="42.7" height="26" rx="13" fill="#ffffff" stroke="#a5dbe6"/>
+    <text x="615.65" y="362" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0e7490">MCP</text>
+    <line x1="516" y1="385" x2="904" y2="385" stroke="#a5dbe6"/>
+    <text x="516" y="409" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#0e7490">~70</tspan>  conversations without the right guidance</text>
+    <!-- Agent-led -->
+    <line x1="324" y1="538" x2="500" y2="538" stroke="#6d28d9" stroke-width="2"/>
+    <rect x="390.0" y="526" width="60" height="24" rx="12" fill="#6d28d9"/>
+    <text x="420" y="542" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">A2A</text>
+    <rect x="500" y="446" width="420" height="184" rx="14" fill="#f3effe" stroke="#6d28d9" stroke-width="1.5"/>
+    <rect x="516" y="462" width="88.39999999999999" height="22" rx="11" fill="#6d28d9"/>
+    <text x="526" y="477" font-size="12" font-weight="700" fill="#fff">Agent-led</text>
+    <text x="904" y="477" text-anchor="end" font-size="12.5" fill="#6d28d9"><tspan font-weight="700">Mechanic:</tspan> agents hand off to agents</text>
+    <text x="516" y="510" font-size="17" font-weight="700" fill="#1d2330">Autonomix</text>
+    <text x="516" y="531" font-size="13" fill="#667085">AI-native; runs its own agents for releases, engineering, and KB</text>
+    <rect x="516" y="548" width="111.7" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="571.85" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">Release Agent</text>
+    <rect x="635.7" y="548" width="139.3" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="705.35" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">Engineering Agent</text>
+    <rect x="783.0" y="548" width="77.2" height="26" rx="13" fill="#ede7fd" stroke="#d6c9fb"/>
+    <text x="821.6" y="565" text-anchor="middle" font-size="12.5" font-weight="600" fill="#6d28d9">KB Agent</text>
+    <line x1="516" y1="588" x2="904" y2="588" stroke="#d6c9fb"/>
+    <text x="516" y="612" font-size="13" fill="#344054"><tspan font-size="16" font-weight="700" fill="#6d28d9">~3</tspan>  conversations without the right guidance</text>
+    <line x1="952" y1="50" x2="952" y2="620" stroke="#98a2b3" stroke-width="2" marker-end="url(#ar2)"/>
+    <text transform="translate(972,335) rotate(90)" text-anchor="middle" font-size="12.5" fill="#667085">More automation, less waiting between people</text>
+  </svg>
+  <p class="cap">Agent-led is specced, not built. Result figures are modeled (see section 5).</p>
+</section>
+
+<section>
+  <h2><span class="n">3</span>Five decisions that shaped it</h2>
+  <div class="grid">
+    <div class="card"><h3>One data model, every tier</h3>
+      <p>Moving up a tier means adopting a new interface, not re-integrating.</p>
+      <div class="mini"><span class="pill dark">Issue</span><span class="pill dark">Case</span><span class="pill dark">Evidence</span><span class="pill dark">InfoRequest</span><span class="pill dark">Guidance</span></div></div>
+    <div class="card"><h3>MCP tools map to intents, not endpoints</h3>
+      <p>The model pays for every call, so return meaning, not rows.</p>
+      <div class="mini"><span class="pill">get issue</span><span class="pill">list cases</span><span class="pill">aggregate</span><span class="arrow">→</span><span class="pill blue">investigate_issue</span></div></div>
+    <div class="card"><h3>Approval follows risk, not tier</h3>
+      <p>Rep-facing questions can be automated. Customer-facing text always gets a human.</p>
+      <div class="mini"><span class="pill green">rep-facing: automate</span><span class="pill amber">customer-facing: human</span></div></div>
+    <div class="card"><h3>Every speed metric has a guardrail</h3>
+      <p>Reporting faster must not mean more rejected reports.</p>
+      <div class="mini"><span class="pill">conversations needed ↓</span><span class="arrow">paired with</span><span class="pill">rejected reports ↔</span></div></div>
+    <div class="card" style="grid-column:1/-1"><h3>Design for the engineer, not just the buyer</h3>
+      <p>Engineers want to spend as little time as possible on support issues, so their goals don't automatically line up with the north star. If the product makes that experience better, they use it, and the loop closes. Developer satisfaction is the primary metric for investigation.</p>
+      <div class="mini"><span class="pill amber">Buyer: VP CS / CX</span><span class="arrow">≠</span><span class="pill green">Engineer: gates the outcome</span></div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">4</span>Prototype</h2>
+  <ul>
+    <li>Clickable walkthrough of the Mixed tier: a webhook creates a ticket, the engineer investigates in an AI assistant over MCP, asks customers a question, and the issue resolves.</li>
+    <li>Built to explore the interfaces, not the scoring pipeline. Data is synthetic.</li>
+  </ul>
+  <div class="btns"><a class="btn primary" href="prototype.html">Open the interactive prototype</a><a class="btn" href="design-notes.html">Design notes: metrics, signals, specs, tradeoffs</a></div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>How I'd measure it</h2>
+  <div class="cols">
+    <div class="card col"><div class="who" style="color:#b54708">Economic buyer · VP CS / CX</div><div class="stage">North star</div>
+      <div class="m"><small>Metric</small>Conversations without the right guidance ↓</div>
+      <div class="m"><small>Guardrail</small>Poor-outcome rate after guidance</div></div>
+    <div class="card col"><div class="who" style="color:var(--plat)">CX Lead</div><div class="stage">Triage</div>
+      <div class="m"><small>Metric</small>Conversations needed to report with confidence ↓</div>
+      <div class="m"><small>Guardrail</small>Rejected reports</div></div>
+    <div class="card col"><div class="who" style="color:var(--ent)">Enterprise engineer</div><div class="stage">Investigate &amp; inform</div>
+      <div class="m"><small>Primary</small>Developer satisfaction ↑</div>
+      <div class="m"><small>Secondary</small>Time to investigate ↓</div>
+      <div class="m"><small>Guardrail</small>Guidance retraction rate</div></div>
+  </div>
+  <div class="bars">
+    <div class="cap" style="margin-bottom:6px"><b>Modeled:</b> conversations handled without the right guidance, by tier</div>
+    <div class="bar"><span class="l">Human-led</span><span class="t"><span class="f" style="width:100%;background:var(--t1)">~100</span></span></div>
+    <div class="bar"><span class="l">Mixed</span><span class="t"><span class="f" style="width:70%;background:var(--t2)">~70</span></span></div>
+    <div class="bar"><span class="l">Agent-led</span><span class="t"><span class="f" style="width:6%;min-width:44px;background:var(--t3)">~3</span></span></div>
+  </div>
+  <details><summary>How the numbers were modeled</summary>
+    <p>Same incident and contact rate in every tier. An engineer investigates in 2h (dashboard) or 30 min (MCP or agents) and fixes in 6h. Engineers work 09:00 to 18:00. Writing guidance from scratch takes about 5h; reviewing a draft takes about 1h. These are assumptions, not measurements.</p></details>
+</section>
+
+<section>
+  <h2><span class="n">6</span>What I'm unsure about, and what's next</h2>
+  <ul>
+    <li><b>Unsure: webhooks.</b> Do product teams want issues pushed to a tracker, or a different channel such as chat, paging, or a digest? Validate with a handful of product teams first.</li>
+    <li><b>Unsure: agents.</b> Will enterprises run their own release, engineering, and KB agents? Build the agent-led tier with one or two design partners.</li>
+    <li><b>Next:</b> version the data model and every interface; offline evals for classification and clustering.</li>
+    <li><b>Measure:</b> tier adoption and migration friction; which MCP tools engineers actually use.</li>
+  </ul>
+</section>
+
+<div class="foot">Prototype uses synthetic data and fictional companies. Tier figures are modeled from stated assumptions, not measured.</div>
+</div>
+</body>
+</html>
